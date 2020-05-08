@@ -145,16 +145,36 @@ Child.staticGetFatherName();
 ```
 ## 深拷贝 
 ```js
-function clone(obj) {
-    if (typeof obj != null && obj != null) return obj
-    if (obj instanceof Date) return new Date(obj)
-    if (obj instanceof RegExp) return new RegExp(obj)
-    let newObj = new obj.constructor
-    for (let i in obj) {
-        newObj[i] = clone(obj(i))
-    }
-    return newObj
+let obj1 = { 
+  name:"zhufeng", 
+  age: 10, 
+  datas:{s:{age:1}},
+  hobbies:['抽烟','喝酒'],
+};
+obj1.obj1 = obj1
+// map key源对象的内存地址 值是克隆后的对象的内存地址
+function clone(obj,map = new Map()) {
+  if (typeof obj != 'object' && obj != null) return obj
+  
+  if (obj instanceof Date) return new Date(obj)
+  if (obj instanceof RegExp) return new RegExp(obj)
+  let newObj = new obj.constructor
+  // 递归 处理
+  if(map.get(obj)){
+    return map.get(obj)
+  } 
+  map.set(obj,newObj)  
+  
+  for (let i in obj) {
+
+    newObj[i] = clone(obj[i],map)
+  }
+  return newObj
 }
+let rs = clone(obj1)
+rs.datas.s.age = 11111111
+rs.hobbies[0] = '11'
+console.log(obj1)
 ```
 ## call
 ```js

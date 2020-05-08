@@ -815,7 +815,8 @@ if(!oldStartVnode){
 - 默认computed也是一个watcher是具备缓存的,只要当依赖的属性发生变化时才会更新视图
 ### 8、Watch的depp：true是如何实现的
 - 当用户指定了watch的deep属性为true时,如果当前监控的值是数组类型。会对对象中的每一项进行求值,此时会将当前watcher存入到对应的属性依赖中,这样数组中对对象发生变化也会通知数据更新 
-### 9、声明周期
+### 9、生命周期
+- 创建前后、载入前后、更新前后、销毁前后
 - beforeCreate在实例初始化之后 数据观测(data observer)之前被调用
 - created 实例已经创建完成 因为他是最早触发的原因可以进行一些数据,资源请求。
 - beforeMount 在挂载开始之前被调用:相关的render函数首次被调用
@@ -824,7 +825,7 @@ if(!oldStartVnode){
 - updated 可以执行依赖于DOM的操作 然而在大多数情况下,你应该避免在此期间更改状态,因为这可能会导致更新无线循环,该钩子在服务器端渲染不能被调用
 - beforeDestroy
 - destroyed 可执行一些优化操作,清解绑定事件
-### 10、合适需要使用beforeDestroy
+### 10、何时需要使用beforeDestroy
 - 可能在当前页面中使用了$on方法,那需要在组件销毁前解绑
 - 清除自定义的定时器
 - 接触事件的绑定 scroll mousemove..........
@@ -834,17 +835,29 @@ if(!oldStartVnode){
   - 2、优化树
   - 3、将ast树生成代码
 ### 12、Vue 中v-if和v-show的区别
+- 实现方式 
+  - v-if是根据后面数据的真假值判断直接从Dom树上删除或重建元素节点
+  - v-show只是在修改元素的css样式，也就是display的属性值，元素始终在Dom树上 
+- 编译条件 
+  - v-if是惰性的，如果初始条件为假，则什么也不做；只有在条件第一次变为真时才开始局部编译；
+  - v-show是在任何条件下（首次条件是否为真）都被编译，然后被缓存，而且DOM元素始终被保留
+- 性能消耗 
+  - v-if有更高的切换消耗，不适合做频繁的切换；
+  - v-show有更高的初始渲染消耗，适合做频繁的额切换；
+- 编译过程 
+  - v-if切换有一个局部编译/卸载的过程，切换过程中合适地销毁和重建内部的事件监听和子组件； 
+  - v-show只是简单的基于css切换；
 - v-if 原理 
   - 语法会编译成特殊的语法函数(三元运算符) 为true的时候 他会创建dom 否则就创建一个空的节点
-- v-show
+- v-show 原理
   - 语法会编译成出来 就是一个directives(指令),在运行的时候会处理这个指令,如果值是false 那么dom的display就为none,如果是true那么原来是啥就是啥
 ### 14、为什么v-for和v-if不能连用
-- v-for会不v-if的优先级高一些,如果连用户的话会把v-if给每个元素添加一下,会造成性能问题
+- v-for会比v-if的优先级高一些,如果连用户的话会把v-if给每个元素添加一下,会造成性能问题
 - v-for和v-if连用的时候,代码会先创建v-for 遍历dom,然后在每个dom上添加v-if,很多个v-if会造成性能问题,一般建议在v-for的父级用v-if，这样v-if只有一个
 ### 15、diff算法的事件复杂度
 - 两个树的完全diff算法是一个时间复杂度为o(n3),vue进行了优化o(n3)复杂度的问题转成成了o(n)复杂的问题，在前端当中,很好会跨越层级地移动Dom元素,所以Virtual Dom只会对同一个层级的元素进行对比
 ### 16、简述Vue的diff算法原理
-- 1、先同级比较,在比较子节点
+- 1、先同级比较,再比较子节点
 - 2、先判断一方有儿子一方没有儿子的情况
 - 3、比较都有儿子的情况
 - 4、递归比较子节点
@@ -857,7 +870,7 @@ if(!oldStartVnode){
     - 1、h=>h(App) 如果传入的是一个string的话就是普通dom。否则就是一个组件,会调用createComponent,他内部会调用Vue.extend,创建组件的时候就去new这个构造函数,同时给组件挂上一些钩子(init,patch,insert,destroy)，最后返回虚拟节点
     - 2、vm._update 执行会用之前的虚拟节点 创建组件,会调用内部的钩子init 然后就会new 之前创造的构造函数,只要一new就会重新执行 vue渲染逻辑 会给组件加上一个watcher 去渲染,最后插入到页面上
 ### 19、组件中的data为什么是一个函数，为什么new Vue({data:xx})这个不data不用返回函数
-  - 1、同一个组件被复用多次,会创建多个实例.这些实例用的是同构造函数,打过data是一个对象,那么所有组件都共享了这个对象,为了保证组件的数据独立性要求每个组件必须通过data函数返回一个对象作为组件的状态
+  - 1、同一个组件被复用多次,会创建多个实例.这些实例用的是同一个构造函数,假如data是一个对象,那么所有组件都引用了这个对象,为了保证组件的数据独立性要求每个组件必须通过data函数返回一个对象作为组件的状态
   - 2、因为他是顶级,不会被复用 new Vue只有一次
 ```js
 function Vue(){}
@@ -870,7 +883,7 @@ let r2 = new Vue()
 console.log(r2.$options.data)
 ```
 ### 20、Vue中事件绑定的原理
-- Vue中事件绑定分位两种,一种是原生的事件绑定,还有一种是组件的事件绑定
+- Vue中事件绑定分为两种,一种是原生的事件绑定,还有一种是组件的事件绑定
 - 1、原生dom事件的绑定是 `@click.native=fn` 他会编译成`nativeOn` 他等价于普通元素的on
 - 2、组件事件绑定是 `@click=fn` 他会转换成`$on` 组件的 on 会单独处理
 - 如果v-for 要给每个元素进行事件绑定可以用事件代理
@@ -1027,7 +1040,7 @@ import Test from './Test.vue'
 - 2、获取父子组件实例的方式 $parent、$children
 - 3、在父组件中提供数据子组件的属性或者方法 Provide、inject
 - 4、Ref获取实例的方式调用组件的属性或者方法
-- 5、Event Bus 实现组件通信
+- 5、eventBus 实现组件通信
   - Vue.prototype.$bus = new Vue()
 - 6、vuex状态管理实现通信
 ### 25、vue中相同逻辑如何抽离
@@ -1060,7 +1073,7 @@ components:{
   - 创建组件虚拟节点,会将组件儿子的虚拟节点保存起来。当初始化的时候,通过插槽属性将儿子进行分类
   - 普通插槽渲染的位子是在父组件里面
 - 作用域插槽
-  - 作用域插槽在解析的时候,不会作位组件的孩子节点。会解析成函数,当子组件渲染时,会调用此函数渲染
+  - 作用域插槽在解析的时候,不会作为组件的孩子节点。会解析成函数,当子组件渲染时,会调用此函数渲染
   - 作用域插槽渲染是在当前子组件内
 ### 28、谈谈你对keep-alive的了解?
 -  keep-alive 可以实现组件的缓存,当组件切换时不会对当前组件进行卸载,常用的2属性include/exclude,2个生命周期activated,deactivated 算法LRU算法
@@ -1069,12 +1082,12 @@ components:{
 ### 29、编码优化
 - 1、不要将所有的数据都放在data中,data中的数据都会增加getter和setter，会收集对应的watcher
 - 2、vue在v-for 时给每项元素绑定事件需要用事件代理
-- 3、spa页面采用keep-alive存在组件
+- 3、spa页面采用keep-alive存在组件(keep-alive使用需谨慎，会导致页面卡顿)
 - 4、key保证唯一性
 - 5、Object.freeze 冻结数据
 - 6、合理使用路由懒加载、异步组件
 - 7、尽量采用runtime运行时版本
-- 8、数据持久化的问题(防抖、节流)
+- 8、数据持久化的问题(防抖、节流)npm
 ### 30、vue加载性能优化
 - 1、第三方模块按需导入(babel-plugin-component)
 - 2、滚动到可视区域动态加载(https://tangbc.github.io/vue-virtual-scroll-list)
@@ -1093,8 +1106,8 @@ components:{
 - vue3 中响应式原理改为proxy
 - vdom的对比算法更新 只更新vdom的绑定了鼎泰数据的部分
 ### 33、实现hash路由和history路由
-- onhashchange => hash
-- history.pushState => h5api (他会出现空白)
+- onhashchange => hash (hashChange监听路由的变化)
+- history.pushState => h5api (他会出现空白) (pushState、popState监听路由变化)
 ### 34、action 和 mutation的区别
 - mutation 是同步更新数据
 - action异步操作 可以获取数据后调用mutation提交最终数据

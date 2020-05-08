@@ -353,7 +353,7 @@ export default {
 </script>
 ```
 - input.vue
-- input标签绑定了一些列监听的方法,用户在校验的时候,会传`trigger`作为触发的事件,与这里绑定的事件对应上。每个事件都会向父级(formItem)传递当前的value,同时父级也会监听到。
+- input标签绑定了一系列监听的方法,用户在校验的时候,会传`trigger`作为触发的事件,与这里绑定的事件对应上。每个事件都会向父级(formItem)传递当前的value,同时父级也会监听到。
 ```html
 <template>
   <input type="text" :value="inputValue" @input="handleInput" @change="handleChange" @blur="handleBlur" @focus="bandleFocus" >

@@ -70,6 +70,30 @@ module.exports = {
         children:[
           "vueSource",
         ]
+      },{
+        title:'jsBase',
+        collapsable:false,
+        children:[
+          "jsBase",
+        ]
+      },{
+        title:'axios',
+        collapsable:false,
+        children:[
+          "axios",
+        ]
+      },{
+        title:'interview',
+        collapsable:false,
+        children:[
+          "interview",
+        ]
+      },{
+        title:'upload',
+        collapsable:false,
+        children:[
+          "upload",
+        ]
       }
     ],
       "/front/": [{

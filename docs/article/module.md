@@ -12,7 +12,7 @@ export var a = 1;
 var b = 2;
 export {b}
 export function f(){}
-// 2、
+// 2、export{} 这个大括号表示批量导出 用的时候需要结构 {}不是对象
 var a = 1;
 var b = 2;
 function f(){}
@@ -77,7 +77,8 @@ export {es6} from 'xx'
   let data = require('xxx.js')
 ```
 ### 具体两大差异
-  - CommonJs 模块输出的是一个值的复制，es6模块输出的是值的引用
+  - CommonJs 模块输出的是一个值的复制,但是传递对象的时候(两边都延迟了,对象传递的值被延时修改,延时获取的对象值也会发生变化,基本类型不会变)
+  - es6模块输出的是值的引用 export default导出的是值(是不会变的),export {} 导出的是变量(会变)
   - CommonJs 模块是运行时候加载，es6模块是编译时输出接口
 ### 相互加载问题
   - import命令加载CommonJS,module.exports等同于export default
@@ -104,14 +105,14 @@ import foo from 'xxx.js'
 exports.fl = false
 let b = require('b.js')
 console.log(`a.js ===> fl:${b.fl}`)
-export.fl = true
+exports.fl = true
 console.log(`a.js ===> 执行完成`)
 
 // b.js
 exports.fl = false
 let a = require('/a.js')
 console.log(`b.js ===> fl:${a.fl}`)
-export.fl = true
+exports.fl = true
 console.log(`b.js ===> 执行完毕`)
 
 // index.js
@@ -127,7 +128,7 @@ console.log(` 代码执行完毕: a ===> fl:${a.fl}; b ===> fl:${b.fl}`);
   代表执行完毕: a ==> fl:true; b ==> fl:true
 */
 ```
-  - ES6模块的运行机制与CommonJS不一样，它遇到模块加载命令import时，不会去执行模块，而是只生成一个引用。等到真的需要用到时，再到模块里面去取值。当es6模块循环引用的时候 如 a.js 引入 b.js，b.js 引入 a.js，由于a.js 已经开始执行了 所以不回重复执行 开始执行b.js
+  - ES6模块的运行机制与CommonJS不一样，它遇到模块加载命令import时，不会去执行模块，而是只生成一个引用。等到真的需要用到时，再到模块里面去取值。当es6模块循环引用的时候 如 a.js 引入 b.js，b.js 引入 a.js，由于a.js 已经开始执行了 所以不会重复执行 开始执行b.js
 ```js
 // a.js
 import {bar} from './b.js';

@@ -12,6 +12,8 @@ compilerOptions{
    "strict"true,
    "esModuleInterop":true,// 通过es6模块的方式导入commonjs模块
 }
+// ts 引入文件 要写成 import * as react from 'react'
+// 如果配置 esModuleInterop:true 才可以写成 import react from 'react'
 ```
 ## 配置脚本
 ```js
