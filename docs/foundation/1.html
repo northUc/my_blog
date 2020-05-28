@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <a href="#111">111</a>
+  <a href="#222">222</a>
+  <a href="#333">333</a>
+  <script>
+
+    window.onpopstate = function(){
+      console.log(123)
+    }
+    // history.pushState({page: 1}, "title 1", "?page=1"); 
+    // history.pushState({}, 'title', '?url=123')
+  </script>
+</body>
+</html>

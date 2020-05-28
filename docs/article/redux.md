@@ -274,7 +274,7 @@ export default function({getState,dispatch}){
   return function(next){//代表下一个中间件 他是实际老的dispatch
     return function(action){
       if(action.then&&typeof action.then == 'function'){
-        return  action.then(dispatch);
+        return  action.then((rs)=>dispatch(rs));
       }
       next(action);
     }
@@ -368,7 +368,7 @@ function persistStore(store){
 - run的参数是generator函数,同时这个generator函数,是saga的入口配置文件,配置文件就想一个reducer能操作store
 - 1、点击按钮 派发一个action 他会走中间件,`events.emit(action.type,action)`他就是一个小拦截的作用,不影响后面的中间件(如果只有next()执行那个会走进入下一个中间件)
 - 2、run是一个函数 他接收的是一个generator函数(是使用saga的一个配置文件,后面再说)。run函数里面的next可以看做一个小的中间件,他是根据generator函数里面的内容执行的。next会自动执行 调用generator里面的 第一个yield。take和put方式 实际就是一个简单的包装,增加了一个type而已,第一个yield执行的时候 返回的type是TAKE,他走了`events`的订阅,而方法就是当前的next。
-- 3、促使化的时候 订阅了,等点击的时候走到中间,执行`events`的emit,他会执行之前保存的next,再次执行generator函数,走到配置文件的 yield put函数,他返回的是一个type是一个PUT,就走case 'PUT',执行dispatch,这个dispatch和组件调用dispatch是一样的,同样他会进入到saga中间件 但是执行`events.emit` 没用,因为此时的action.type没有被订阅,这个是个的dispatch 就是真正的会修改store的。接着执行'put'的next,进入generator的下一个yield。流程就完了
+- 3、初始化的时候 订阅了,等点击的时候走到中间,执行`events`的emit,他会执行之前保存的next,再次执行generator函数,走到配置文件的 yield put函数,他返回的是一个type是一个PUT,就走case 'PUT',执行dispatch,这个dispatch和组件调用dispatch是一样的,同样他会进入到saga中间件 但是执行`events.emit` 没用,因为此时的action.type没有被订阅,这个是个的dispatch 就是真正的会修改store的。接着执行'put'的next,进入generator的下一个yield。流程就完了
 
 - 简单的实现原理
 - redux-saga/index
@@ -499,7 +499,7 @@ export const ASYNC_INCREMENT = 'ASYNC_INCREMENT'
 ```
 ### take
 - 用法 `take(types.ASYNC__XX)` 用来订阅的 不会执行任何
-- saga 函数第一个是默认执行的 所有上来我先take订阅一下时间。
+- saga 函数第一个是默认执行的 所以上来就先take订阅一下时间。
 - 内部执行到take的时候 会触发订阅事件`events.once(effect.actionType,next)`,中间件执行的时候每次都会执行`events.emit(action.type,action)`,如果事件对应上 就会触发next(下一个中间件)执行,他会走saga函数的下一个yield函数,所以组件内调用saga函数的types一般和take函数里面的types对应。组件调用一个 saga 函数往下走一次,调用2次 saga 才能走2次yield。他会阻塞进程
 ```js
 // 用法

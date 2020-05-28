@@ -159,7 +159,7 @@ observer(obj)
 ```
 
 ### select/radio/checkbox
-```js
+```html
   // select  v-model绑定option中的value   option标签中间的显示的给客户看 value给程序员看 
   <select v-model='selectValue'> 
     <!-- 默认 请选择 -->
@@ -179,11 +179,15 @@ observer(obj)
 ```
 
 ## 修饰符
-- v-model.number
-- v-model.number.trim
+- v-model.lazy 转为在 change 事件_之后_进行同步
+- v-model.number 将用户的输入值转为数值类型
+- v-model.trim 自动过滤用户输入的首尾空白字符
 - @keyup.enter
   - 键盘修饰符 @keyup='fn' input按下键盘就触发fn .enter修饰符就是(按下enter键的时候触发)
-
+```html
+<!-- 在“change”时而非“input”时更新 -->
+<input v-model.lazy="msg">
+```
 ## 过滤器
 ```js
 {{name | capitalize(1)}}

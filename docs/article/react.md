@@ -52,7 +52,13 @@ ReactDOM.render(
 ,document.getElementById('root'))
 // 列表中的每一个子元素都应该有唯一的key属性
 ```
-
+## 性能优化
+- 每次调用setState的时候组件都会刷新
+```js
+  shouldComponentUpdate(nextProps, prevState) {
+      return !_.isEqual(prevState, this.state);
+  }
+```
 ## 组件
 ### 函数组件 
 - 函数组件 函数执行完成返回一个React元素 虚拟dom
@@ -353,6 +359,10 @@ export default{
 */
 ```
 ## ref&受控和非受控
+- 受控组件
+  - input中的value值通过state值获取，onChange事件改变state中的value值，input中的value值又从state中获取
+- 非受控组件
+  - 非受控也就意味着我可以不需要设置它的state属性，而通过ref来操作真实的DOM。
 ```js
 /*
   ref的用法 + 受控组件和非受控组件
@@ -368,6 +378,7 @@ export default{
   add=()=>{
     let num1 = this.num1.current.value
   }
+  // this.num1.value 就可以获取到值
   <input ref={this.num1}/>
 
   input内部会存储自己的值,这个值和react是相互独立的
@@ -455,13 +466,27 @@ class Counter extends React.Component{
 export default Counter
 ```
 - 卸载 componentWillUnmount组件将要卸载
-
+## 合成事件
+- React绑定事件的时候,并不是将直接绑定给当前的DOM,而是在document上监听所有的事件,当时间冒泡到document的时候,react将事件内容进行处理,并且交由真正的处理函数运行
+### 如何在事件上处理函数中绑定this
+- 1、箭头函数
+- 2、匿名函数
+- 3、bind进行绑定
+## 展示组件和容器组件
+- 展示组件
+  -  主要负责组件内容如何展示，从props接收父组件传递来的数据，大多数情况可以通过函数定义组件声明
+- 容器组件
+  - 主要关注组件数据如何交互，拥有自身的state，需要通过类定义组件声明，并包含生命周期函数和其他附加方法
+- 解耦了界面和数据的逻辑,一个人负责界面结构，一个人负责数据交互
 ## setState
 - 他既不是同步也不是异步(看情况)
 - 1、`this.setState`修改数据变化,首先将setState传进来的数据存放到 pending 列表中
 - 2、判断是否是批量更新,是的话,就将当前组件存放到 dirtyComponents(脏组件数组中)。
   - 否的话,就将直接更新当前组件的 update(直接更新dom操作),遍历所有的 dirtyComponents(脏组件)执行他们的update方法(直接更新dom操作)
   - 是的情况下一般是同步,把所有的组件存起来,否的一般是异步情况,因为同步走完了会更新批量为false
+## Immutable
+- Immutable Data 就是一旦创建，就不能再被更改的数据。对 Immutable 对象的任何修改或添加删除操作都会返回一个新的 Immutable 对象
+
 ```js
 // 事务
 class Transaction{

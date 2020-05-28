@@ -1122,6 +1122,7 @@ button.onclick = function () {
 - 6、`compiler.hooks.done`在webpack编译完成后触发的,回调参数能获取hash值 也就是每次编译产生的hash值。循环处理`sockets`(他代表浏览器客户端socket),回调函数的参数能获取到当前的编译的hash值,同时利用socket给客户端发送`hash`(传递hash值)&&`ok`事件
 
 ### client
+- webpack.HotModuleReplacementPlugin 这个插件就是创建了一个client
 - html文件引入`<script src="socket.io/socket.io.js"></script>`
 - 1、初始化socket
 - 2、监控`hash`&&`ok`事件,接收hash值保存起来,后面很有用

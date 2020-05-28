@@ -749,3 +749,15 @@ export function cloneVNode(vnode: VNode): VNode {
 ## update
 
 - Vue 在初始化的时候会提供一个`_update`,在`src/core/instance/lifecycle.js`,而且调用的只在首次渲染,数据更新的时候调用了。他里面的核心方法是`__patch__`,他在`src/platforms/web/runtime/index.js`定义
+
+## vuex
+- vue是单向数据流，组件变动不能驱动数据，而是数据变动驱动组件
+- 同步情况 调用mutation改数据
+- 异步情况，派发action，调用api，再在action里调用mutation改数据
+- vuex 数据持久化vuex-persits
+### vuex原理
+- 每个vue插件 内部都提供install方法,他接收Vue
+- install 方法内部通过 vue.mixin 把store属性传递给每个组件
+## vue-router
+- hash 通过hashchange监控hash变化
+- history api 通过pushState

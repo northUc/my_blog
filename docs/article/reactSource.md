@@ -1,4 +1,7 @@
 # react source
+
+[mock react](https://github.com/xiaoqi7777/react.git) master分支
+
 [[toc]]
 ##  babel 编译 jsx
 -  `React.createElement(....)`,第一个标签类型/或者类(函数),第二个是标签属性,之后的全都是子元素(可能是一个文本,也可能是一个react元素)
@@ -291,11 +294,15 @@ React.render(element1,document.getElementById('root'))
   - 3、处理老元素,所有的children包装映射成{reactid:children}的格式
   - 4、处理新元素,`getNewChildren`函数遍历新childrenElements, 用key查找oldElements对应的元素 有的话就进行shouldDeepCompare深度比较,调用老元素.update进行递归更新,没有的话就创建新的元素,返回 新的children包装映射成{reactid:children}的格式和所有的新children
   - 5、开始比较(diff),遍历新的所有新children,用key在老的children查找对应的元素比较
-    - 1、如果新老一样(一样的话他们是同一个引用地址)就生成一个`diffQueue`补丁项
-      - diffQueue数组  字段`fromIndex`为老的索引值这个值在remove操作和获取老元素时候用到的，字段`toIndex`是指重新排列的新元素位子，主要是插入元素
-    - 2、当新老不一样的时候 就删除老children(打补丁操作),`diffQueue`添加一个新的节点(打补丁操作),最后删除新children中 不保存老children的元素
-    - 3、lastIndex作用挪动元素，遍历新元素,当新老元素相等的时候,lastIndex定位到老元素的最后一个,老元素相等的时候小于lastIndex,就说明要换位子 添加到`diffQueue`中
-  ```js
+    - 1、如果新老一样,就复用老节点,移动位子即可,生成一个补丁项({type:MOVE})
+      - lastIndex(在老元素中最后一个固定的索引值)作用挪动元素,lastIndex定位到老元素的最后固定位子,老元素位子小于lastIndex,就说明要换位子 添加补丁({type:MOVE}),若老元素的位子大于等于lastIndex就不操作
+    - 2、当新老不一样的时候
+      - a、key相同 节点不同 就删除老children(打补丁操作{type:REMOVE}),
+      - b、添加一个新的节点(打补丁操作{type:INSERT})
+    - 3、c、最后遍历老节点,当新节点中没有的时候,就删除
+  - 6、等待所有元素比较完成,开始打补丁包
+    - 补丁包先做删除dom操作,在做移动和添加操作
+```js
   // 补丁项
   diffQueue.push({
     parentId: this._reactid,
@@ -304,8 +311,7 @@ React.render(element1,document.getElementById('root'))
     fromIndex: oldChildUnit._mountIndex,//_mountIndex 代表老元素之前的索引位子
     toIndex: i
   })
-  ```
-
+```
 ```js
 // NativeUnit
   update(nextElement){
@@ -360,7 +366,10 @@ React.render(element1,document.getElementById('root'))
       // 第一个拿到的就是 newKey=A
       let newKey = (newUnit._currentElement.props && newUnit._currentElement.props.key) || i.toString()
       let oldChildUnit = oldChildrenUnitMap[newKey];
-      if (oldChildUnit === newUnit) {// 如果说新老一致的话 说明复用了老节点
+      if (oldChildUnit === newUnit) {
+        // 1、如果说新老一致的话 说明复用了老节点  
+        // oldChildUnit._mountIndex < lastIndex 说明key值获取的值是一样的 但是位子不一样 老元素的位子 < 小于新元素的位子(只有老元素的位子小于新元素的位子才需要move,用lastIndex做标识,反过来不用挪动)
+        // lastIndex 在老元素中最后一个固定的索引值
         if (oldChildUnit._mountIndex < lastIndex) {
           diffQueue.push({
             parentId: this._reactid,
@@ -372,7 +381,8 @@ React.render(element1,document.getElementById('root'))
         }
         lastIndex = Math.max(lastIndex, oldChildUnit._mountIndex)
       } else {
-        // 当标签不一样的时候 没有复用 要删除原有的 
+        // 当标签不一样的时候 key 相同
+        // 2、老节点没有复用的 要删除原有的 
         if (oldChildUnit) {
           diffQueue.push({
             parentId: this._reactid,
@@ -384,7 +394,7 @@ React.render(element1,document.getElementById('root'))
           this._renderedChildrenUnits = this._renderedChildrenUnits.filter(item => item !== oldChildUnit)
           $(document).undelegate(`.${oldChildUnit._reactid}`)
         }
-        // 新的节点 就去创建
+        // 3、新的节点 就去创建
         diffQueue.push({
           parentId: this._reactid,
           parentNode: $(`[data-reactid="${this._reactid}"]`),
@@ -398,6 +408,7 @@ React.render(element1,document.getElementById('root'))
       newUnit._mountIndex = i;
     }
     for (let oldKey in oldChildrenUnitMap) {
+      // 4、新节点里面没有老节点的 要删除掉
       let oldChild = oldChildrenUnitMap[oldKey]
       if (!newChildrenUnitMap.hasOwnProperty(oldKey)) {
         diffQueue.push({

@@ -62,7 +62,8 @@ module.exports = {
           "reactRouter",
           "dva",
           "hook",
-          "reactSource"
+          "reactSource",
+          "fiber"
         ]
       },{
         title:'vue',
@@ -71,22 +72,10 @@ module.exports = {
           "vueSource",
         ]
       },{
-        title:'jsBase',
-        collapsable:false,
-        children:[
-          "jsBase",
-        ]
-      },{
         title:'axios',
         collapsable:false,
         children:[
           "axios",
-        ]
-      },{
-        title:'interview',
-        collapsable:false,
-        children:[
-          "interview",
         ]
       },{
         title:'upload',
@@ -144,6 +133,19 @@ module.exports = {
           "subject",
           "leetcode",
           "everyWrite"
+        ]
+      },{
+        title:'jsBase',
+        collapsable:false,
+        children:[
+          "jsBase",
+        ]
+      },{
+        title:'interview',
+        collapsable:false,
+        children:[
+          "interview",
+          "status"
         ]
       }]
     }

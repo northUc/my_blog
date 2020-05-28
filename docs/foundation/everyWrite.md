@@ -58,6 +58,16 @@ function fn(arr) {
 }
 console.log(fn([5, 2, 6, 3, 2, 6, 1]))
 ```
+## 原型链 规则
+- 1、所有引用对象都是可以拓展其属性
+- 2、引用对象都有一个 __proto__ 属性 他是一个普通对象
+- 3、函数都有一个 prototype 属性他是一个普通对象
+- 4、引用对象的__proto__ 指向 构造函数的prototype
+- 5、当试图得到对象的某一个属性,会先在自身查找,找不到在去构造函数的prototype找,直到找到Object
+## new 原理
+- 1、创建一个空对象,关联构造函数的原型
+- 2、执行构造函数,this指向当前对象
+- 3、判断执行的结果 若是对象即返回 否则返回新的对象
 ## class extends
 ```js
 class Father{
@@ -356,20 +366,184 @@ console.log(rs)
 
 ## 函数柯里化
 ```js
-function currie(...args) {
-    let rs = [...args]
+// 1、收集数组
+console.log(add(1, 2, 3, 4, 5));//15
+console.log(add(1)(2, 3)(4, 5));//15
+console.log(add(1)(2)(3)(4)(5));//15
 
-    function fn(...args) {
-        rs.push(...args)
-        return fn
+const add = ((total)=>{
+  let AllArgs = []
+  function _add(){
+    AllArgs = [...AllArgs,...arguments]
+    if(AllArgs.length >= total){
+      let rs = AllArgs.reduce((a,b)=>a+b)
+      AllArgs.length = 0
+      return rs
+    }else{
+      return _add
     }
-    fn.toString = () => rs.reduce((a, b) => a + b)
-    return fn
-}
-let rs = currie(1)(2)(3)(4)
-console.log(rs + '')
-```
+  }
+  return _add
+})(5)
 
+
+// 2、利用toString
+alert(add(1, 2, 3, 4, 5));//15
+alert(add(1)(2, 3)(4, 5));//15
+alert(add(1)(2)(3)(4)(5));//15
+
+function add(...args){
+  let _add = add.bind(null,...args)
+  _add.toString = function(){
+    return  args.reduce((a,b)=>a+b)
+  }
+  return _add
+}
+
+
+// 3、利用 递归
+console.log(add(1, 2, 3, 4, 5));//15
+console.log(add(1)(2, 3)(4, 5));//15
+console.log(add(1)(2)(3)(4)(5));//15
+
+function curry(fn,...args){
+  return args.length < fn.length ? (...innerArgs)=> curry(fn,...args,...innerArgs) : fn(...args)
+}
+
+function _add(a,b,c,d,e){
+  return a+b+c+d+e
+}
+
+let add = curry(_add)
+```
+## 数组扁平化flat方法的多种实现
+```js
+let arr = [
+    [1],
+    [2, 3],
+    [4, 5, 6, [7, 8, [9, 10, [11]]]],
+    12
+];
+// 1、
+console.log(arr.flat(Infinity))
+// 2、toString() 能将多层数组扁平化 
+console.log(arr.toString().split(',').map(item=>Number(item)))
+// 3、JSON.stringify 和 toString类似
+console.log(JSON.stringify(arr).replace(/\[|\]/g,'')..split(',').map(item=>Number(item)))
+// 4、concat可以展开一层
+while(arr.some(item=>Array.isArray(item))){
+  arr = [].concat(...arr)
+}
+console.log(arr)
+// 5、flat 里面递归处理
+Array.prototype.myFlat = function(){
+  let rs = []
+  let _this = this;
+  function _flat(arr){
+    for(let i=0;i<arr.length;i++){
+      let item = arr[i]
+      if(Array.isArray(item)){
+        _flat(item)
+      }else{
+        rs.push(item)
+      }
+    }
+  } 
+  _flat(_this)
+  return rs
+}
+let rs = arr.myFlat()
+console.log(rs)
+```
+## 如何让 (a == 1 && a == 2 && a == 3) 的值为true
+```js
+// 1、Symbol.toPrimitive
+let a = {
+  [Symbol.toPrimitive]:(function(){
+    let i = 1;
+    return ()=> i++;
+  })()
+}
+
+// 2、Proxy
+let a =new Proxy({},{
+  i:1,
+  get(obj,key){
+    return ()=>this.i++
+  }
+})
+// 3、valueOf
+let a = {
+  i:0,
+  valueOf:function(){
+    return ++this.i
+  }
+}
+// 4、toString
+let a = {
+  i:0,
+  toString:function(){
+    return ++this.i
+  }
+}
+// 5、 Object.defineProperty
+let i=0
+Object.defineProperty(window,'a',{
+  get(){
+    return ++i
+  }
+})
+// 6、toString配合数组
+var a = [1,2,3]
+a.toString = a.shift
+
+console.log(a + '')
+console.log(a + '')
+console.log(a + '')
+```
+## 编写parse函数，实现访问对象里属性的值
+```js
+let obj = { 
+  a: 1, 
+  b: { c: 2 }, 
+  d: [1, 2, 3], 
+  e: [{ f: [4, 5, 6] }] 
+};
+let r1 = parse(obj, 'a');// = 1;
+let r2 = parse(obj, 'b.c');// = 2;
+let r3 = parse(obj, 'd[2]');// = 3;
+let r4 = parse(obj, 'e[0].f[0]');// = 4;
+// function parse(obj,str){
+//   let rs = new Function('obj','return obj.'+str)
+//   return rs(obj)
+// }
+function parse(obj,str){
+  // 正则将 e[0] => e.0 
+  str = str.replace(/\[(\d+)\]/g,`.$1`)
+  // str = str.replace(/\[(\d+)\]/g,($0,$1)=>`.${$1}`)
+  let arr = str.split('.')
+  arr.forEach(item=>{
+    obj = obj[item]
+  })
+  return obj
+}
+console.log(r1,r2,r3,r4)
+```
+## sleep方法封装
+```js
+// 普通
+function sleep(delay){
+  for(var start = Date.now();Date.now()-start <= delay;){}
+}
+// 基于promise
+function sleep_wait(ms){
+  return new Promise((resolve,reject)=>{
+    setTimeout(()=>{
+      resolve();
+    },ms)
+  })
+}
+```
 ## 数组 交集 并集 差集
 ```js
 let arr1 = [1, 2, 3, 1, 4]
@@ -390,6 +564,57 @@ arr1 = new Set(arr1)
 arr2 = new Set(arr2)
 let rs = [...arr1].filter(item => arr2.has(item))
 console.log(rs)
+```
+## 节流
+- 一段时间内会触发一次
+```html
+<body>
+  <div id='btn'>点击</div>
+  <script>
+      function fn(){
+        console.log('fn')
+      }
+      // 节流 一段时间内只会触发一次
+      function throttle(fn,await){
+        let pre = null
+        return function(){
+          let now = Date.now()  
+          if(now-pre>await){
+            fn()
+            pre = now
+          }
+        }        
+      }
+      let dom = document.getElementById('btn')
+      dom.addEventListener('click',throttle(fn,1000))
+  </script>
+```
+## 防抖
+- 一直按只会触发一次
+```html
+<div id='btn'>点击</div>
+<script>
+    function fn(){
+      console.log('fn')
+    }
+    function throttle(fn,await,immediate){
+      let timeout;
+      return function(){
+        if(immediate){
+          if(!timeout){
+            fn.apply(this,arguments)
+          }
+        }
+        clearInterval(timeout)
+        timeout = setTimeout(()=>{
+          fn()
+        },await)
+      }
+    }
+
+    let dom = document.getElementById('btn')
+    dom.addEventListener('click',throttle(fn,1000,true))
+</script>
 ```
 
 ## 路由 路径参数解析
@@ -695,7 +920,7 @@ landLord.lend(agent,40,600)
 // client 端
 // module.hot.accept('moduleId',fn) 缓存数据
 // 创建一个发布订阅 client 监控到 server发送过来的hash保存,当socket接收到ok事件事件,会发送`webpackHotUpdate`事件,第一次的时候 会保存当前的hash值,第二次的时候才会走hot的逻辑 
-//  1、用更新前的上一次hash(hotCurrentHash)+'.hot-update.json'发送get请求,询问服务器到底这一次编译相对上一次编译改变了哪些chunk,哪些模块,返回的 h是当前的hot hash值 c是当前变化的chunkId(c是一个对象,key是 chunkId,value是true)
+//  1、更新的时候 会用 hash(上一次保存的hash)+'.hot-update.json'发送get请求,询问服务器到底这一次编译相对上一次编译改变了哪些chunk,哪些模块,返回的 h是当前的hot hash值 c是当前变化的chunkId(c是一个对象,key是 chunkId,value是true)
 //  2、遍历c对象,jsonp请求变化的数据,url是 chunkId+用更新前的上一次hash(hotCurrentHash)+'.hot.update.js',返回的是 webpackHotUpdate('chunkId',{moduleId:value})
 //  3、webpackHotUpdate 作用 遍历jsonp过来的的数据 1、通过__webpack_require__ 加载有变化的module 2、通过moduleId 获取到parentModule 在里面取到hot里之前缓存的函数执行，加载最新的数据 
 ```
@@ -873,3 +1098,86 @@ function bodyParser() {
 // console.log(rs)
 ```
 
+## React(0.3版本的)
+### React 渲染流程
+- 1、jsx语法会通过babel转成虚拟DOM
+- 2、虚拟DOM在创建元素的时候,会分成原生DOM,文本节点,函数组件3类,在分别创建对应的节点，文本标签会用span标签包裹返回。原生dom,他会解析里面的属性,通过事件委托的方式绑定dom事件,赋值标签属性,递归渲染儿子节点。函数组件,类组件会转成函数组件,类组件的生命期在这处理,return或者render 返回的内容，通过递归创建dom
+- 3、 setState 方法是 React.Component 类提供的方法,他内部会去调用 当前组件的.update方法将新状态传递进去,然后进行状态合并。比较元素的谭类型是否相同,不相同就直接砍掉重新创建元素,相同先比较属性,在比较children(diff)
+### diff 比较
+- 1、如果说新老一致的话 说明复用了老节点,如果老元素的位子小于(已遍历老元素的位子)就要往后移动(添加补丁包)
+- 2、当标签不一样的时候 key 相同,老节点没有复用的 要删除原有的 (添加补丁包)
+- 3、新的节点 就去创建(添加补丁包)
+- 4、新节点里面没有老节点的 要删除掉(添加补丁包)
+- 5、等待所有元素比较完成,开始打补丁包,补丁包先做删除dom操作,在做移动和添加操作
+### redux
+
+
+## vue 
+### DOMDiff
+- 核心的patch方法,接收(新节点,老节点)
+- 1、比较标签,当标签不一样,直接替换
+- 2、标签一样,比较文本,如果内容不一样,用新的替换老的文本节点
+- 3、标签一样,比较属性,遍历新老属性,进行修改
+- 4、比较儿子节点,a、当老的有孩子,新的没有孩子,直接删除老的child。b、当老的没有孩子,新的有孩子,递归遍历新的孩子往老节点添加。c、当都有孩子的时候是最烦,分5中策略
+  - 开头插入,从头开始比较(新 a b c d,老 a b c d e的情况下) 先比较新老的第一个始比较,下次比较第二个 
+  - 结尾插入,从尾巴开始比较(新 a b c d,老 e a b c d的情况下) 先比较新老的最后一个,下次在比较倒数第二个
+  - 正序,用新的头和老的尾巴开始比较,(新的 a b c d,老的 d c b a)
+  - 倒序,用新的尾巴和老的头开始比较,(新的 a b c d,老的 d a b c )
+  - 乱序,顺序不确定的情况,遍历新节点,用新的第一个DOM去老的里面匹配,如不匹配则直接插入到老节点的前面,如匹配则直接一定老节点。新节点遍历完成,在看老节点中还有剩余的(新节点中没有的)直接删除
+  - 最后比较完,判断新节点中还有剩余的元素则需要将剩余的插入，如果老节点中还有剩余则需要全部删除
+- 注意 循环的是 尽量不要使用索引作为key 可能会导致重新创建当前元素的所有子元素
+### 完整的导航解析流程
+```js
+/*
+  导航被触发。
+  在失活的组件里调用离开守卫。(组件内 beforeRouteLeave)
+  调用全局的 beforeEach 守卫。(全局前置守卫 beforeEach )
+  在重用的组件里调用 beforeRouteUpdate 守卫 (组件内的 beforeRouteUpdate, /foo/1 和 /foo/2 之间跳转的时候用到)
+  在路由配置里调用 beforeEnter。(组件内 beforeEnter)
+  解析异步路由组件。(全局router.beforeResolve  在导航被确认之前,所有组件内守卫和异步路由组件被解析之后)
+  在被激活的组件里调用 beforeRouteEnter(在组件渲染前 不能获取this)
+  调用全局的 beforeResolve 守卫 
+  导航被确认。
+  调用全局的 afterEach 钩子。
+  触发 DOM 更新。
+  用创建好的实例调用 beforeRouteEnter 守卫中传给 next 的回调函数。
+
+
+  路由配置守卫即配置在路由对象中
+
+    组件实力的导航守卫： beforeRouteLeave beforeRouteEnter beforeRouteUpdate
+
+    全局守卫： beforeEach beforeResolve afterEach
+
+    路由配置守卫： beforeEnter
+
+*/
+```
+### vuex
+- vue是单向数据流，组件变动不能驱动数据，而是数据变动驱动组件
+- 同步情况 调用mutation改数据
+- 异步情况，派发action，调用api，再在action里调用mutation改数据
+- vuex 数据持久化vuex-persits
+### vuex原理
+- 每个vue插件 内部都提供install方法,他接收Vue
+- install 方法内部通过 vue.mixin 把store属性传递给每个组件
+## vue-router
+- hash 通过hashchange监控hash变化
+- history api 通过pushState
+
+## fiber
+
+## 微前端
+### 核心 
+- 触发的时机
+  - 1、浏览器触发,拦截onhashchange和onpopstate事件
+  - 2、手动触发,注册app和start启动这两个方法
+- 修改队列(changesQueue)
+  - 每次触发时机进行一次触发操作,都会被存放到changesQueue队列中,类似事件队列一样,等待被处理,不过changesQueue是成批执行。而js事件循环是一个个执行
+- 处理事件队列
+  - 1、判断是否启动 如果没有则loadApps,初始化apps的生命周期
+  - 2、若启动了,则执行完成的appChanges,unMount App load App Mount App,
+  - 上面2个不管哪个处理完成 都会进入到finish,他会判断 changesQueue 是否还是数据,有的话就循环执行,直到队列内的数据都跑完,触发Events,然后在执行vue router或者react router
+- location事件
+  - 每次循环中止都会将已拦截的location事件进行触发,这样保证为前端的location触发事件总是最先的,vue和React总是在后面
+## 

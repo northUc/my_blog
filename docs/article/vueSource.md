@@ -682,7 +682,6 @@ let oldVnode = h('div',{id:'container',style:{background:'red'}},
 
 let newVode = h('div',{id:'a'},
                 h('li',{style:{background:'red'},key:'a'},'a'),
-                h('li',{style:{background:'red'},key:'a'},'a'),
                 h('li',{style:{background:'yellow'},key:'b'},'b'),
                 h('li',{style:{background:'blue'},key:'c'},'c'),
                 h('li',{style:{background:'pink'},key:'e'},'e'),
@@ -714,9 +713,9 @@ let oldVnode = h('div',{id:'container',style:{background:'red'}},
 let newVode = h('div',{id:'a'},
                 h('li',{style:{background:'pink'},key:'e'},'e'),
                 h('li',{style:{background:'red'},key:'a'},'a'),
-                h('li',{style:{background:'red'},key:'a'},'a'),
                 h('li',{style:{background:'yellow'},key:'b'},'b'),
                 h('li',{style:{background:'blue'},key:'c'},'c'),
+                h('li',{style:{background:'pink'},key:'d'},'d'),
             );
 // 结尾比较
 if(isSameVnode(oldEndVnode,newEndVnode)){ // 从后面比较看是否一样
@@ -918,7 +917,10 @@ function transformModel(options,data){
 }
 ```
 - 原生的 v-model 会根据标签的不同生成不同的事件和属性
-- 相对组件多了一个指定的属性
+  - 原生input 默认就是 value属性 和 change/input事件
+  - 原生checked 默认就是 checked属性 和 change事件
+- input原生标签相对组件多了一个指令的属性
+  - 这个指令主要是对输入做一些校验功能，以及绑定一些自己的事件
 ```js
 <input v-model='value'/>
 /*

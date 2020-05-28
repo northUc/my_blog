@@ -1,6 +1,6 @@
 # upload
 [[toc]]
-- [实现代码](git@github.com:xiaoqi7777/upload.git)
+- [实现代码](https://github.com/xiaoqi7777/upload)
 - 分支master 前端代码 技术react hooks+ts
 - 分支back 后端代码 express
 ## 跑通前后端

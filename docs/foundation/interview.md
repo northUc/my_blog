@@ -41,6 +41,14 @@ console.log(r1,r2,r3,r4)
 ```
 ## sleep方法封装
 ```js
+// 1
+function sleep(delay){
+  for(var start = Date.now();Date.now()-start <= delay;){}
+}
+  console.log('1')
+  sleep(5000)
+  console.log('2')
+// 2
 function sleep_wait(ms){
   return new Promise((resolve,reject)=>{
     setTimeout(()=>{
@@ -48,7 +56,14 @@ function sleep_wait(ms){
     },ms)
   })
 }
-//用法
+//用法 1
+let fn =async ()=>{
+  console.log('1')
+  await sleep_wait(5000)
+  console.log('2')
+}
+fn()
+//用法 2
 let is_loaded = true
 let fn =async ()=>{
   console.log('---------')
@@ -377,8 +392,6 @@ console.log([]==!{});//true
 ![] = false =>Number(false)=>0
 ```
 
-## 柯里化
-
 ## debounce(防抖)
 - 一直按按钮 只触发一次,等待最后一次按钮触发,在开始计算倒计时,开始触发按钮函数
 ```js
@@ -526,3 +539,6 @@ function getType(source){
 }
 
 ```
+### ['1','2','3'].map(parseInt)
+- 结果 1 NaN NaN
+- parseInt(string,radix) 如果radix在2-36之外会返回NaN
