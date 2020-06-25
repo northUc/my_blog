@@ -708,6 +708,9 @@ function createContext(){
 ## 高阶组件
 - 高阶组件 一般需要一个函数 传入一个老组件 返回一个新的组件
 - 高阶函数  函数可以作为方法的参数或返回值
+- 高阶组件可以让代码更具有复用性、逻辑性和抽象性
+- 高阶组件可以对render方法进行劫持，可以控制props和state
+- 实际的开发中会到的地方比如redux的connect函数、router-router中的withRouter、处理全局的loading和权限处理等
 ```js
 import React,{Component} from 'react';
 // 高阶组件 一般需要一个函数 传入一个老组件 返回一个新的组件

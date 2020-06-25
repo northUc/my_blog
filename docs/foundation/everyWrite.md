@@ -1168,16 +1168,39 @@ function bodyParser() {
 ## fiber
 
 ## 微前端
-### 核心 
+- 名词解析:微前端就是后端微服务在前段的映射
+- 如何在浏览器落地
+  - 1、iframe
+  - 2、single-spa
+- 场景
+  - 1、将大的复杂的应用 拆分成多个小的app进行加载
+  - 2、将不同的app 组合到一起 进行加载(vue，react项目)
+- 每个app 向外export4个生命周期()
+  - 1、bootstrap(启动,每个app只会启动一次)
+  - 2、mount(挂载)
+  - 3、ummount(卸载)
+  - 4、update(更新)
+- 卸载
+  - vue vueInstance.$destory()
+  - react 
+    - ReactDOM.ummountComponentAtNode(element)
+    - ReactDOM.findNode(reactInstance)
+### 执行流程(核心) 
 - 触发的时机
   - 1、浏览器触发,拦截onhashchange和onpopstate事件
   - 2、手动触发,注册app和start启动这两个方法
 - 修改队列(changesQueue)
   - 每次触发时机进行一次触发操作,都会被存放到changesQueue队列中,类似事件队列一样,等待被处理,不过changesQueue是成批执行。而js事件循环是一个个执行
-- 处理事件队列
-  - 1、判断是否启动 如果没有则loadApps,初始化apps的生命周期
-  - 2、若启动了,则执行完成的appChanges,unMount App load App Mount App,
-  - 上面2个不管哪个处理完成 都会进入到finish,他会判断 changesQueue 是否还是数据,有的话就循环执行,直到队列内的数据都跑完,触发Events,然后在执行vue router或者react router
+- 事件循环
+  -  每一次事件开始循环,会判断为前端框架是否已经启动
+  - 1、如果没有,则loadApps,加载完成后调用内部的finish
+  - 2、若启动了,则执行完成的app的生命周期,unMount App load App Mount App,
+  - 不管是否启动,都会执行finish,finish就是判断当前队列是否为空,如果不为空就重新循环一次,为空的话中止循环退出流程
 - location事件
   - 每次循环中止都会将已拦截的location事件进行触发,这样保证为前端的location触发事件总是最先的,vue和React总是在后面
-## 
+## 性能监控
+- 监控全局捕获错误,普通的监听`error`,异步的监听`unhandledrejection`
+- ajax 进行接口监控,在请求成功或失败的时候进行日志上报
+- 监控白屏,白屏原理:在onload时 在页面中通过`document.elementsFromPoint(x,y)`进行取点和已有的包裹元素进行 
+  - `elementsFromPoint`方法可以获取到当前视口内指定坐标处，由里到外排列的所有元素
+- 性能指标,通过`performance Timing`对页面每个时间段进行分析

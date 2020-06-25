@@ -539,6 +539,3 @@ function getType(source){
 }
 
 ```
-### ['1','2','3'].map(parseInt)
-- 结果 1 NaN NaN
-- parseInt(string,radix) 如果radix在2-36之外会返回NaN

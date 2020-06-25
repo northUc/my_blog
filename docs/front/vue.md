@@ -1299,7 +1299,7 @@ export default {
 
 ```
 
-## axion && jwt 使用
+## axios && jwt 使用
 - 搭建server.js
 - jwt 原理 
   - 后端: 用户信息 + 密钥(后端存放) + 过期时间(等) = 组成一个加密的token

@@ -400,7 +400,7 @@ run(){
 ```js
 //  Computed 以他为例
   computed:{
-    fullName(){
+    fullNames(){
       return this.firstName+this.lastName
     },
   }
@@ -884,7 +884,7 @@ console.log(r2.$options.data)
 ### 20、Vue中事件绑定的原理
 - Vue中事件绑定分为两种,一种是原生的事件绑定,还有一种是组件的事件绑定
 - 1、原生dom事件的绑定是 `@click.native=fn` 他会编译成`nativeOn` 他等价于普通元素的on
-- 2、组件事件绑定是 `@click=fn` 他会转换成`$on` 组件的 on 会单独处理
+- 2、组件事件绑定是 `@click=fn` 他会转换成`$on` 组件的 on 会单独处理，`$on`他会收集定义的组件到_events数组中等待`$emit`遍历key获取到对应的_events事件触发
 - 如果v-for 要给每个元素进行事件绑定可以用事件代理
 
 ### 21、v-model中的实现原理及如何自定义v-model
@@ -1009,6 +1009,42 @@ import Test from './Test.vue'
   }
 </script>
 ```
+### sync v-model
+- sync是修改符号
+- v-model 一个组件只能绑定一个
+- 都是组件双向绑定
+```html
+  <!-- v-model的本质 -->
+  <!--v-model写法-->
+  <my-component type="text" v-model="value">
+  <!--编译后的写法-->
+  <my-component type="text"
+    :value="value"
+    @input="value = $event.target.value"
+  >
+  <!--
+  默认针对原生组件input事件，但是如果子组件定义了针对事件
+  model: {
+          prop: "value",
+          event: "update"
+  },
+  则编译为
+  -->
+  <my-component type="text"
+    :value="value"
+    @update="(val) => value = val"
+  >
+
+
+  <!-- .sync本质 -->
+  <!--语法糖.sync-->
+  <my-component :value.sync="value" />
+  <!--编译后的写法-->
+  <my-component 
+    :value="msg" 
+    @update:value="(val) => value = val"
+  >
+```
 ### 22、vue中v-html会导致哪些问题？
 - 1、可能会导致xss攻击
 ```js
@@ -1113,3 +1149,135 @@ components:{
 ### 34、action 和 mutation的区别
 - mutation 是同步更新数据
 - action异步操作 可以获取数据后调用mutation提交最终数据
+### 35、组件自身循环
+```js
+// 父组件
+ <CascaderItem :num='3'/>
+
+// 子组件
+<template>
+  <div>
+    CascaderItem
+    <div class="right" v-if='num>0'>
+      {{num}}
+      <Child :num="getNum" />
+    </div>
+  </div>
+</template>
+
+<script>
+  export default {
+    name:'Child',
+    props:{
+      num:{
+        type:Number
+      }
+    },
+    mounted(){
+      console.log('-',this.num)
+    },
+    computed:{
+      getNum(){
+        return this.num - 1
+      }
+    },
+    data(){
+      return{
+        
+      }
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+
+</style>
+```
+## vue汇总
+### 组件注册
+- 全局注册和局部注册都一样
+- 注意名字 注册的时候可以用 驼峰也可以用-,使用的时候只能用-
+```html
+Vue.component('todo-item',{})
+
+<todo-item :todo='todo'></todo-item>
+```
+### 计算属性
+- 计算属性是基于它们的响应式依赖进行缓存的
+- 默认只有一个get 可以给他提供一个setter
+```js
+computed: {
+  fullName: {
+    // getter
+    get: function () {
+      return this.firstName + ' ' + this.lastName
+    },
+    // setter
+    set: function (newValue) {
+      var names = newValue.split(' ')
+      this.firstName = names[0]
+      this.lastName = names[names.length - 1]
+    }
+  }
+}
+```
+### 绑定class && style
+- 对象语法 可以动态绑定 也可以传递一个对象 也可以用计算属性
+```js
+<div v-bind:class="classObject"></div>
+// 1、
+data: {
+  classObject: {
+    active: true,
+    'text-danger': false
+  }
+}
+// 2、
+data: {
+  isActive: true,
+  error: null
+},
+computed: {
+  classObject: function () {
+    return {
+      active: this.isActive && !this.error,
+      'text-danger': this.error && this.error.type === 'fatal'
+    }
+  }
+}
+```
+- 数组语法
+```js
+<div v-bind:class="[activeClass, errorClass]"></div>
+data: {
+  activeClass: 'active',
+  errorClass: 'text-danger'
+}
+```
+- 组件上,当声明组件的时候给了class ,然后在使用组件的时候也给class,他们会进行合并
+### v-show 和 v-if
+```js
+v-show 不支持 <template> 元素，也不支持 v-else。
+```
+
+### 修饰符
+.lazy 
+```js
+<!-- 在“change”时而非“input”时更新 -->
+<input v-model.lazy="msg">
+```
+### 递归组件
+- 用到了name 属性 他代表当前的组件
+### router
+- 两种模式 history && hash
+- hash 在url上会多`/#` 原理是通过 监控hashchange变化
+- history 通过监控 onpopstate(出栈,当活动历史记录条目更改时触发,history.pushState()或history.replaceState()不会触发popstate事件),pushstate(进栈则需要我们通过pushState,replaceState手动实现),此模式在刷新的时候需要后端支持,否则会报错
+- 404 配置
+```js
+{
+  path:'*',
+  component:router4
+}
+```
+- replace 不会往history栈内添加新数据，替换掉当前的 history 记录。
+- push会当用户点击浏览器后退按钮时，则回到之前的 URL。

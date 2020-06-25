@@ -135,17 +135,19 @@ module.exports = {
           "everyWrite"
         ]
       },{
-        title:'jsBase',
+        title:'Base',
         collapsable:false,
         children:[
           "jsBase",
+          "cssBase"
         ]
       },{
         title:'interview',
         collapsable:false,
         children:[
           "interview",
-          "status"
+          "status",
+          "suanfa"
         ]
       }]
     }

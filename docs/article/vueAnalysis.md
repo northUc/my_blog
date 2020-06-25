@@ -1,7 +1,7 @@
 # vue
 
 - 准备工作 clone vue@2.6.10
-
+[[toc]]
 ## 数据驱动
 
 - 流程图
@@ -749,6 +749,193 @@ export function cloneVNode(vnode: VNode): VNode {
 ## update
 
 - Vue 在初始化的时候会提供一个`_update`,在`src/core/instance/lifecycle.js`,而且调用的只在首次渲染,数据更新的时候调用了。他里面的核心方法是`__patch__`,他在`src/platforms/web/runtime/index.js`定义
+
+
+## 组件
+### createComponent
+- 1、创建组件的时候 内部主要靠`Vue.extend`创建一个vue的子类
+- 2、安装组件的钩子(hooks)
+- 3、实例化vnode,组件的vnode没有children属性
+## patch
+- 在组件update的时候,会走patch,通过createElm创建 新的节点,patch会将新老元素对比。在完成组件的整个 patch 过程后,最后执行insert完成DOM的插入,如果组件 patch 过程中又创建了子组件，那么DOM 的插入顺序是先子后父
+- patch的流程:createElement -> 子组件初始化 -> 子组件render -> 子组件patch
+## options合并
+- 分2中情况  第一种是全局new Vue的时候,第二种情况是组件内部 new Vue实例化子组件,都是通过mergeOption,并遵循一定的合并策略
+- 全局情况下,他会把全局`components、directives、filter`合并到 全局的options中
+- mergeOptions 合并的方法，先递归把 extends 和 mixins 合并到 parent 上,在分情况合并其他配置
+  - 合并生命周期,如果child和parent有相同的生命周期函数即,用parent.concat(child) 将两个生命周期放到数组内,先执行parent 在执行child的
+```js
+// 全局options
+Vue.options.components = {}
+Vue.options.directives = {}
+Vue.options.filters = {}
+```
+## mixin
+- mixin 原理就就是把函数 合并到options中 
+```js
+Vue.mixin = function(mixin){
+  this.options = mergeOptions(this.options,mixin)
+  return this
+}
+```
+## 组件注册
+- 全局注册和局部注册
+```js
+// 全局 
+Vue.component('my-component', {
+  // 选项
+})
+
+// 局部
+import HelloWorld from './components/HelloWorld'
+
+export default {
+  components: {
+    HelloWorld
+  }
+}
+```
+## 异步组件
+- 异步组件实现的本质是2次渲染(2次及以上),先渲染注释节点,当组件加载成功后,在通过forceRender重新渲染
+- 普通 就是 require 语法请求
+- promise 通过 import 返回一个promise
+- 高级异步组件
+```js
+// 普通
+Vue.component('async-example', function (resolve, reject) {
+   // 这个特殊的 require 语法告诉 webpack
+   // 自动将编译后的代码分割成不同的块，
+   // 这些块将通过 Ajax 请求自动下载。
+   require(['./my-async-component'], resolve)
+})
+// promise
+Vue.component(
+  'async-webpack-example',
+  // 该 `import` 函数返回一个 `Promise` 对象。
+  () => import('./my-async-component')
+)
+// 高级异步组件
+const AsyncComp = () => ({
+  // 需要加载的组件。应当是一个 Promise
+  component: import('./MyComp.vue'),
+  // 加载中应当渲染的组件
+  loading: LoadingComp,
+  // 出错时渲染的组件
+  error: ErrorComp,
+  // 渲染加载中组件前的等待时间。默认：200ms。
+  delay: 200,
+  // 最长等待时间。超出此时间则渲染错误组件。默认：Infinity
+  timeout: 3000
+})
+Vue.component('async-example', AsyncComp)
+```
+## 响应式注意事项
+- 响应式数据中对于对象新增删除属性以及数组的下标访问修改和添加数据等变化观察不到
+- 通过Vue.set以及数组的API可以解决这些问题,本质上他们内部手动去做了依赖更新的派发
+
+## props
+- 属性是连字符的时候 内部统一处理成驼峰
+- 子组件props 接收属性 定义可以写成 数组 对象(对象可以自定义,也可以接收多个类型用数组表示)
+- 当接收多个类型,内部会遍历先执行数组的第一个类型是否满足，在依次往后判断
+- 特例 当传递的值(必须是连字符)和属性一样的时候,属性接收的第一个为布尔值,则为 true
+- 当 传递<Test nick-name/>的时候  也是true
+
+```js
+//  parent
+<Test nick-name='nick-name'/>
+// child
+<template>
+  <div>
+      123 => {{nickName}}
+  </div>
+</template>
+
+<script>
+  export default {
+    props:{
+      nickName:[Boolean,String]
+    }
+  }
+</script>
+```
+- 内部优化
+  - 当组件每次更新的时候  同时props用的默认值 不会重新出发watch
+
+```html
+  <Test :num='age'/>
+    <button @click="btn">++++</button>
+
+ data(){
+    return{
+    
+      age:1,
+    }
+  },
+  methods:{
+      btn(){
+        this.age++
+      }
+    },
+ <!-- child -->
+<template>
+  <div>
+      => {{num}} 
+      <br/>
+      =>{{data}}
+  </div>
+</template>
+
+<script>
+  export default {
+    props:{
+      num:[Number],
+      data:{
+        type:Object,
+        default(){
+          return{
+            a:'123',
+          }
+        }
+      }
+    },
+    watch: {
+      num(){
+        console.log('.....')
+      }
+    },
+  }
+</script>
+```
+## Vue中事件绑定的原理
+- Vue中事件绑定分为两种,一种是原生的事件绑定,还有一种是组件的事件绑定
+- 1、原生dom事件的绑定是 `@click.native=fn` 他会编译成`nativeOn` 他等价于普通元素的on
+- 2、组件事件绑定是 `@click=fn` 他会转换成`$on` 组件的 on 会单独处理，`$on`他会收集定义的组件到_events数组中等待`$emit`遍历key获取到对应的_events事件触发
+- 如果v-for 要给每个元素进行事件绑定可以用事件代理
+
+## v-model 原理
+- 下面两种区别，功能都是双项绑定, v-model 等待输入结束显示页面,value+@input在输入的时候就显示页面
+```js
+<input v-model='msg'/>
+// 等价下面的
+<input :value='msg' @input='$event.target.value'/>
+```
+### v-model 在组件中
+- 组件等同于下面这个mode
+```js
+model: {
+    prop: 'value',
+    event: 'input'
+  },
+```
+## vue 插件
+
+## vue-lazyload
+- 图片懒加载
+
+## vue-router
+- Vue编写插件的时候 通常要提供静态的install方法
+- vue-router的install方法会给每一个组件注入beforeCreated(做初始化工作)和 destroyed钩子函数,
+## vuex
 
 ## vuex
 - vue是单向数据流，组件变动不能驱动数据，而是数据变动驱动组件

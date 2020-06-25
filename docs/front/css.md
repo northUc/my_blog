@@ -160,6 +160,7 @@
 - doctype 意义
   - 让浏览器以标准模式渲染
   - 让浏览器知道元素的合法性
+  - 如果没有<!DOCTYPE>声明，那么不同的浏览器将会以自己不同的怪异的模式去解析渲染页面，称之为“怪异模式”
 - HTML XHTML HTML5的
   - HTML属于SGML
   - XHTML属于XML 是比较严格的
@@ -843,6 +844,9 @@
     width: 100px;
     background: red
   }
+  .center{
+    float: left;
+  }
   .left{
     float: left;
     width: 100px;
@@ -1193,3 +1197,7 @@ hr {
   </ul>
 </body>
 ```
+## src&&href
+- src 是source的缩写,是页面必不可少缺少的一部分,是引入 常用的有 img script iframe
+  - src 加载js的时候,会暂停浏览器渲染,知道js加载完成且执行完成 才开始渲染
+- href 表示超文本(引用) 常用的有link,a

@@ -4,18 +4,170 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <style>
+    .mask1
+{
+    height: 0;
+    width: 100px;
+    border-top: 100px solid red;
+    border-right: 37px solid transparent;
+}
+  </style>
 </head>
 <body>
-  <a href="#111">111</a>
-  <a href="#222">222</a>
-  <a href="#333">333</a>
-  <script>
 
-    window.onpopstate = function(){
-      console.log(123)
+  <style>
+    .left,.right{
+    background: red;
+   }
+    .one{
+      display: grid;
+      width: 100%;
+      grid-template-columns:300px auto 300px;
+      grid-template-rows:100px
     }
-    // history.pushState({page: 1}, "title 1", "?page=1"); 
-    // history.pushState({}, 'title', '?url=123')
+  </style>
+  <section class="one">
+    <div class="left">左</div>
+    <div class="center">中</div>
+    <div class="right">右</div>
+  </section>
+  
+  <!-- <div class="mask1"></div> -->
+  <!-- <a href="#111">111</a>
+  <a href="#222">222</a>
+  <a href="#333">333</a> -->
+  <script>
+  //   function test(a,b){
+  //     console.log(b);
+  //     return {
+  //       test:function(c,a){
+  //         return test(c,a)
+  //       }
+  //     }
+  //   }
+  //   // var a = test(100,200)
+  //   // a.test(300)
+  //   // a.test(400)
+
+  //   // var b = test(101).test(201).test(401)
+  //  var c = test(101).test(201,302)
+  //   c.test(401)
+  // let a = {
+  //   i:5,
+  //   valueOf:function(){
+  //     return this.i+3
+  //   }
+  // }
+  //   console.log(a==5&&a==8)
+
+
+  // var data = [
+  //   {
+  //     parentId:null,
+  //     id:'a'
+  //   },
+  //   {
+  //     parentId:'a',
+  //     id:'c'
+  //   },
+  //   {
+  //     parentId:'d',
+  //     id:'f'
+  //   },
+  //   {
+  //     parentId:'c',
+  //     id:'e'
+  //   },
+  //   {
+  //     parentId:'b',
+  //     id:'d'
+  //   },
+  //   {
+  //     parentId:'a',
+  //     id:'b'
+  //   }
+  // ]
+  let array = [
+  {
+    id: 1,
+    parent_id: 0,
+    name: "四川省"
+  },
+  {
+    id: 2,
+    parent_id: 0,
+    name: "广东省"
+  },
+  {
+    id: 3,
+    parent_id: 0,
+    name: "江西省"
+  },
+  {
+    id: 5,
+    parent_id: 1,
+    name: "成都市"
+  },
+  {
+    id: 6,
+    parent_id: 5,
+    name: "锦江区"
+  },
+  {
+    id: 7,
+    parent_id: 6,
+    name: "九眼桥"
+  },
+  {
+    id: 8,
+    parent_id: 6,
+    name: "兰桂坊"
+  },
+  {
+    id: 9,
+    parent_id: 2,
+    name: "东莞市"
+  },
+  {
+    id: 10,
+    parent_id: 9,
+    name: "长安镇"
+  },
+  {
+    id: 11,
+    parent_id: 3,
+    name: "南昌市"
+  }
+]
+ 
+
+
+
+function listToTree(list) {
+  let map = {};
+  list.forEach(item => {
+    if (! map[item.id]) {
+      map[item.id] = item;
+    }
+  });
+ 
+  list.forEach(item => {
+    if (item.parent_id !== 0) {
+      map[item.parent_id].children ? map[item.parent_id].children.push(item) : map[item.parent_id].children = [item];
+    }
+  });
+  list = list.filter(item=>{
+    if(item.parent_id !== 0){
+      return false
+    }else{
+      return true
+    }
+  })
+  console.log(list)
+  return list
+}
+console.log(listToTree(array));
   </script>
 </body>
 </html>
