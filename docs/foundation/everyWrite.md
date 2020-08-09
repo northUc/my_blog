@@ -146,7 +146,7 @@ var Child = (function (_super){
   }
   return Child
 })(Father)
-let child = new Child('zhufeng',10)
+let child = new Child('xxx',10)
 child.getName();
 // child.getAge();
 Child.staticGetChildName();
@@ -156,7 +156,7 @@ Child.staticGetFatherName();
 ## 深拷贝 
 ```js
 let obj1 = { 
-  name:"zhufeng", 
+  name:"xxx", 
   age: 10, 
   datas:{s:{age:1}},
   hobbies:['抽烟','喝酒'],

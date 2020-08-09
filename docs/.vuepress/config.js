@@ -98,6 +98,12 @@ module.exports = {
           "webpack",
           "video"
         ]
+      },{
+        title: 'js',
+        collapsable: false,
+        children: [
+          "jsBase",
+        ]
       }],
       "/houduan/": [{
         title: "houduan",
@@ -121,7 +127,9 @@ module.exports = {
           "nginx",
           "linux",
           "docker",
-          "jenkins"
+          "jenkins",
+          "vscode",
+          "jest"
         ]
       }],
       "/foundation/": [{

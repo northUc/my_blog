@@ -304,7 +304,36 @@ window.addEventListener('resize',setRemUnit)
 - 配置有两种写法 下面是options配置 还可以创建一个.babelrc文件 将options里的对象 复制过
 - `cnpm i -S @babel/plugin-transform-runtime @babel/runtime`  @babel/plugin-transform-runtime 是插件 他会依赖@babel/runtime
 - options 里面内容尽量放到 .babelrc文件 测试 不然会报错(测试)
+
 - eslint 处理代码校验 `cnpm i eslint eslint-loader babel-eslint -D`  配合vscode插件`eslint`保存自动处理代码 
+- eslint 配合 vscode 就可以对单个js文件直接进行代码检查不需要webpack
+  - eslintrc 需要安裝的库 `cnpm i eslint eslint-loader babel-eslint eslint-config-airbnb -D `
+```js
+// vscode setting配置
+    // #每次保存的时候自动格式化 他eslint保存 还有点冲突(格式化代码的时候 会把最后一行空格删除,eslint 需要保存这一行)
+    "editor.formatOnSave": false,
+    // #每次保存的时候将代码按eslint格式进行修复
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+// .eslintrc.js
+module.exports = {
+    parser: "babel-eslint", // 把源码转成语法树的工具
+    extends: "airbnb", // 继承airbnb规则
+    env: { // 指定运行环境
+        browser: true,
+        node: true,
+    },
+    rules: {
+        "linebreak-style": "off",
+        indent: ["error", 4], // 缩进风格
+        quotes: ["error", "double"], // 引号类型
+        semi: ["error", "always"], // 关闭语句强制分号结尾
+        "no-console": "error", // 禁止使用console
+        "arrow-parens": 0, // 箭头函数用小括号括起来
+    },
+};
+```
   - eslint 是核心库 eslint-loader loader作用 babel-eslint 转义高级语法
   - 创建配置文件 .eslintrc.js
   - [eslint-config-airbnb](https://github.com/airbnb/javascript/tree/master/packages/eslint-config-airbnb)
@@ -541,7 +570,7 @@ module.exports = {
 - 拷贝静态文件 `copy-webpack-plugin`
 - 情况 `clean-webpack-plugin`
 ```js
-new webpack.BannerPlugin('珠峰培训'),
+new webpack.BannerPlugin('测试11'),
 new CopyWebpackPlugin([{
   from: path.resolve(__dirname,'src/assets'),//静态资源目录源地址
   to:path.resolve(__dirname,'dist/assets') //目标地址，相对于output的path目录
@@ -701,7 +730,7 @@ new webpack.DefinePlugin({
     VERSION: "1",
     EXPRESSION: "1+2",
     COPYRIGHT: {
-        AUTHOR: JSON.stringify("珠峰培训")
+        AUTHOR: JSON.stringify("测试11")
     }
 })
 ```

@@ -40,7 +40,7 @@ function toUser(user){
   // react 可以作为方法的参数  也可以作为方法的返回值
   return <span>{user.id}:{user.name}:<span dangerouslySetInnerHTML={{__html:user.slogan}}></span></span>
 }
-let users = [{id:1,name:'zhufeng',slogan:'<input id="user" value="zf"/>'},{id:2,name:'jiagou'}]
+let users = [{id:1,name:'sg',slogan:'<input id="user" value="zf"/>'},{id:2,name:'xxx'}]
 ReactDOM.render(
   <ul className='users'>
   {

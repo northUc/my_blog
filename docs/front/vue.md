@@ -91,11 +91,11 @@ observer(obj)
 ```js 
   //:key解析 
   <div v-if="flag">
-    <span>珠峰</span>
+    <span>测试1</span>
     <input type="text" :key='1' />
   </div>
   <div v-else>
-    <span>架构</span>
+    <span>测试2</span>
     <input type="text" :key='2' />
   </div>
 
@@ -1225,7 +1225,7 @@ const router = new VueRouter({
 ```js
   // state
   export default {
-    lesson:'珠峰课程',
+    lesson:'测试课程',
     className:'1-1'
   }
   // getters

@@ -93,7 +93,7 @@ star.setState('绿色')
       el:'#app',
       data:{
         school:{
-          name:'珠峰',
+          name:'测试',
           age:10111
         }
       }

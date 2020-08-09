@@ -1393,7 +1393,7 @@ module:{
         loader:'banner-loader',
         options:{
           presets:{
-            text:'珠峰',
+            text:'测试1',
           },
           filename:path.resolve(__dirname,'banner.js')
         }
