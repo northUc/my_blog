@@ -5,7 +5,7 @@
 ### jest 配置
 - 安装 cnpm i -D jest
 - 配置文件 npx jest --init(npx 调用的是node_modules下的jest)
-- npx jest coverage 生成测试覆盖率(或者脚本配置 jest coverage)
+- npx jest --coverage 生成测试覆盖率(或者脚本配置 jest coverage)
 ```js
 module.exports = {
   // true时，当前引入文件时候 首先会到__mocks__ 目录下查找,在到当前文件下查找
@@ -22,6 +22,7 @@ module.exports = {
 ```
 
 ### babel 配置
+- jest 默认只认识 commonJs
 - 安装babel @babel/core@7.4.5 @babel/preset-env@7.4.5
 - 创建.babelrc文件
 - jest 内部有一个(babel-jest)插件 他会去找babelrc的配置
@@ -44,7 +45,7 @@ module.exports = {
 ## jest 命令行
 - w切换模式
 - f模式 过滤没有通过的测试 再次按f即退出这个模式
-- 0模式 只测试修改过的文件 但是需要git commit 配合
+- 0模式 只测试修改过的文件 但是需要git commit 配合  (git commit 提交后  只会测试修改后的文件)
 - a模式 跑一遍所有的测试
 - p模式 通过filename 进行过滤
 - t模式 通过test用例的名字 进行过滤
@@ -111,6 +112,18 @@ describe('xx',()=>{
   - toContain ` const arr = ['dell','lee','imooc'];const data = new Set(arr);expect(arr).toContain('dell'); expect(data).toContain('dell')`
 - 异常
   - toThrow 里面的值如果写的话要个报错保持一致 `const fn =()=>{throw new Error('this is a new error')};expect(fn).toThrow('this is a new error')` 
+  - toThrow里面的参数可以是字符串 也可以是正则
+- 对象
+  - toMatchObject 对象包含 
+```js
+let a = {
+  a:1,
+  b:2
+}
+expect(a).toMatchObject({
+  b:2
+})
+```
 ```js
 // 工具库
 export default class Counter{
@@ -139,6 +152,10 @@ test('测试 Counter 中的 addOne 方法',()=>{
 - mock 即模仿 当`jest.mock('./demo')` 之后的引用 `'./demo'`都会去__mocks__目录下查找文件,若没有在去当前目录下查找,就是对原文件进行了一个拦截,一般就是模拟处理我们的异步，`jest.mock('./xx')`他会默认提升位子 执行的时候会跑到import之前执行
 - `jest.unmock('./demo')`取消模拟
 - `const {fetchData} = jest.requireActual('./demo')` 即引入当前真正的文件
+- 作用
+  - 1、mock函数 捕获函数的调用和返回结果 以及this和执行顺序
+  - 2、可以让我们自由的设置返回结果 
+  - 1、修改内部函数的实现
 ### 测试接口的小例子
   - only 表示只测试当前的一个test用例
 ```js
@@ -146,13 +163,22 @@ test('测试 Counter 中的 addOne 方法',()=>{
 export const fetchData = ()=>{
   return axios.get('/').then(rs=>rs.data)
 }
+// mock axios
+jest.mock('axios');
+test('测试 fetchData',async()=>{
+  axios.get.mockResolvedValueOnce({data:'hello'})
+  await  fetchData().then(data=>{
+    expect(data).toBe('hello')
+  })
+})
+
 // 拦截例子 不会等待真实接口发送请求  时间太长了
 export const fetchData = ()=>{
   return new Promise((resolved,reject)=>{
     resolved("123")
   })
 }
-// 测试 
+// 测试 修改 jest.moc()里面的参数
 jest.mock('./demo')
 import { fetchData } from './demo';
 test.only('mock',()=>{
@@ -235,7 +261,7 @@ export const fetchData = () => axios.get('http://www.dell-lee.com/react/api/demo
 export const fetchData = () => axios.get('http://www.dell-lee.com/react/api/demo1.json')
 
 // test
-// 回调函数
+// 回调函数 必须要用到 done 函数执行 否则回调函数无法测试到
 test('回调',(done)=>{
   fetchData((data)=>{
     expect(data).toEqual({
@@ -250,7 +276,14 @@ test(`promise`,async()=>{
   expect(rs.data).toEqual({
     success:true
   })
+  // 或者用 下面的  但是一定要加return 否则没用
+  // return fetchData().then(rs=>{
+  //   expect(rs.data).toEqual({
+  //     success:true
+  //   })
+  // })
 })
+
 
 // 404 一般要单独测试
 test(`404`,async()=>{
@@ -262,6 +295,25 @@ test(`404`,async()=>{
     expect(e.toString()).toMatch('404')
   }
 })
+
+
+// promise异步 匹配对象
+test(`fetchData`,()=>{
+  // toMatchObject 匹配对象
+  // expect(fetchData()).resolves ajax 返回的所有成功数据
+  return expect(fetchData()).resolves.toMatchObject({
+    data:{
+      success:true
+    }
+  })
+})
+
+// 404
+test(`fetchData`,async()=>{
+  // toMatchObject 匹配对象
+  await expect(fetchData()).rejects.toThrow()
+})
+
 ```
 - 定时器测试
 ```js
