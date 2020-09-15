@@ -414,3 +414,92 @@ test("snapshot config", () => {
   })
 */
 ```
+## vue test
+- npm install --save-dev jsdom jsdom-global
+### 试手
+```js
+// Counter.vue
+    <input
+      :class="$style.headerInput"
+        data-test='input1'
+        v-model='inputValue'
+        @keyup.enter='addTodoItem'
+        placeholder="TodoList!"
+    />
+    export default {
+      data () {
+        return {
+          inputValue: ''
+        }
+      },
+      methods: {
+        addTodoItem () {
+          if (this.inputValue) {
+            this.$emit('add', this.inputValue)
+            this.inputValue = ''
+          }
+        }
+      }
+    }
+
+    // test
+  import { mount } from '@vue/test-utils'
+  import Counter from './counter'
+// 判断一个元素是否存在
+  describe('Counter', () => {
+    // 现在挂载组件，你便得到了这个包裹器
+    const wrapper = shallowMount(Header)
+    // 也便于检查已存在的元素
+    it('Counter 包含 input 框', () => {
+      const input = wrapper.find('input')
+      expect(input.exists()).toBe(true)
+    })
+  })
+// 获取 data内的数据
+  it('Counter 中input的数据为空',()=>{
+    const wrapper = shallowMount(Header)
+    const input = wrapper.vm.$data.inputValue
+    expect(input).toBe('')
+  })
+// input 框值发生变化,数据应该跟着变
+  it('Counter input 框值发生变化,数据应该跟着变',()=>{
+    const wrapper = shallowMount(Header)
+    // 如果是 findAll 就是所有的都设置
+    const input = wrapper.find("[data-test='input']")
+    input.setValue(1)
+    expect(wrapper.vm.$data.inputValue).toBe(1)
+  })
+// input 框输入回车,无内容时,无反应
+  it('Header 中 input 框输入回车,无内容时,无反应', () => {
+  const wrapper = shallowMount(Header)
+  const input = findTestWrapper(wrapper, 'input')
+  input.setValue('')
+  input.trigger('keyup.enter')
+  // 当数据为空 回撤的时候 事件不被触发
+  expect(wrapper.emitted().add).toBeFalsy()
+})
+// 中 input 框输入回车,无内容时,无反应 
+  // trigger 第二个参数穿传入一个对象 他会混入 event参数中
+  // emitted 表示事件被触发 后面接收事件名
+it('Header 中 input 框输入回车,无内容时,无反应', () => {
+  const wrapper = shallowMount(Header)
+  const input = findTestWrapper(wrapper, 'input')
+  // input.setValue('')
+  input.trigger('keyup.enter', {
+    data: 11
+  })
+  // 当数据为空 回撤的时候 事件不被触发
+  expect(wrapper.emitted().add).toBeFalsy()
+})
+// input 框输入回车,有内容时,向外触发事件,同时情况 inputValue
+it('Header 中 input 框输入回车,有内容时,向外触发事件,同时情况 inputValue', () => {
+  const wrapper = shallowMount(Header)
+  const input = findTestWrapper(wrapper, 'input')
+  input.setValue('dell lee')
+  input.trigger('keyup.enter')
+  // 当有数据 回撤的时候 事件被触发 同时情况数据
+  expect(wrapper.emitted().add).toBeTruthy()
+  expect(wrapper.vm.$data.inputValue).toBe('')
+})
+
+```
