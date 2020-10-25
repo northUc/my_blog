@@ -40,6 +40,7 @@ module.exports = {
           "webpack",
           "module",
           "vueAnalysis",
+          "vueN",
           "promise",
           "wx",
           "frontModle",
@@ -83,6 +84,12 @@ module.exports = {
         children:[
           "upload",
         ]
+      },{
+        title:'binary',
+        collapsable:false,
+        children:[
+          "binary",
+        ]
       }
     ],
       "/front/": [{
@@ -116,7 +123,8 @@ module.exports = {
           "mock",
           "wx",
           "koa",
-          "http"
+          "http",
+          "mysql"
         ]
       }],
       "/operation/": [{
@@ -132,7 +140,7 @@ module.exports = {
           "jest"
         ]
       }],
-      "/foundation/": [{
+      "/interview/": [{
         title: "foundation",
         collapsable: false,
         children: [
@@ -146,14 +154,17 @@ module.exports = {
         title:'Base',
         collapsable:false,
         children:[
+          "cssBase",
           "jsBase",
-          "cssBase"
         ]
       },{
         title:'interview',
         collapsable:false,
         children:[
-          "interview",
+          "interviewBase",
+          "interviewJs",
+          "interviewVue",
+          "interviewWebpack",
           "status",
           "suanfa"
         ]

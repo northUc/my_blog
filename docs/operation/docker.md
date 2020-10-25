@@ -29,37 +29,53 @@ tee /etc/docker/daemon.json <<-'EOF'
   "registry-mirrors": ["https://fwvjnv59.mirror.aliyuncs.com"]
 }
 EOF
+// 重新加载某个服务的配置文件，如果新安装了一个服务，归属于 systemctl 管理，要是新服务的服务程序配置文件生效，需重新加载。
 systemctl daemon-reload
+// 重启docker服务
 systemctl restart docker
 ```
 
 ## image    
 >镜像  image 文件可以看作是容器的模板 一个 image 文件往往通过继承另一个 image 文件，加上一些个性化设置而生成  用来实例化的  可比喻一个类 
-
+> 上传大内容 比较快 原理:他会计算内容的hash值,保存起来,下来若有上传相同内容的文件,他会去计算内容hash,若有相同的 他会直接读入内部的数据,不会再次上传。docker image 上传也类似
+- git 和 svn 原理
+  - svn 每次变化,他会把文件生成一个快照 保存起来
+  - git 每次变化,仓库内存的只是相对上一次变化的内容 保存起来
 - 基本操作
+- 镜像: 后面的默认是latest(默认最新,不是最新则要加版本号) 
 
 | 命令        | 含义       |  案例|
 | ----------- | ----------| ---- |
 | images | 查看全部镜像 | docker image ls|
-| search | 查找镜像 | docker search [imageName]|
-| pull | 拉取镜像 | docker pull [imageName]|
-| rmi | 删除镜像 | docker rmi [imageName]|
+| search | 查找镜像 | docker image search [imageName]|
+| pull | 拉取镜像 | docker image pull [imageName]|
+| rmi | 删除镜像 | docker image inspect [imageName]|
+| rmi | 镜像信息 | docker image rmi [imageName]|
+| tag | 镜像取名字(会多一条记录) | docker image tag [imageName] [myName]:latest(版本)|
+
 
 ## 容器 
-> docker run 命令会从 image 文件，生成一个正在运行的容器实例 就像 new object 一样
+> docker run 命令会从 image 文件，生成一个正在运行的容器实例 就像 new object 一样,当本地没有找到镜像,回去服务器拉取到本地,在创建容器
+
+- docker container run hello-world 他会生成一个 容器,只打印一下日志就关闭(能启动后台服务的容器就不会关闭)
+- 后缀 添加 -a 显示所有容器
+- 后缀 -l 显示最新的容器
 
 | 命令        | 含义       |  案例|
 | ----------- | ----------| ---- |
-| run | 从镜像运行一个容器 | docker run ubuntu /bin/echo 'hello-world' | 
-| --rm | 运行完自动删除 |docker run --rm ubuntu /bin/bash|
-| ps | 查看当前运行的容器 | docker ps -a -l | 
+| run | 从镜像运行一个容器 | docker container run ubuntu /bin/echo 'hello-world' | 
+| --rm | 运行完自动删除 |docker container run --rm ubuntu /bin/bash|
+| ps | 查看当前运行的容器 | docker container ps -a -l | 
+| ls | 查看所有容器 | docker container ls -a  | 
+| inspect | 查看容器信息 | docker container inspect  [containerId] | 
 | kill [containerId] | 终止容器(发送SIGKILL ) | docker kill [containerId] | 
 | rm [containerId] | 删除容器 | docker rm [containerId] | 
 | start [containerId] | 启动已经生成、已经停止运行的容器文件 | docker start [containerId] | 
 | stop [containerId] | 终止容器运行 (发送 SIGTERM ) | docker stop [containerId] | 
 | logs [containerId] | 查看 docker 容器的输出 | docker logs [containerId] | 
 | attach [containerId]| 进入容器 | docker attach [containerId]|
-| exec [containerId] | 进入一个正在运行的 docker 容器 | docker container exec -it [containerID] /bin/bash | 
+| run [containerId] | 进入一个正在运行的 docker 容器 | docker container  run -it [container] /bin/bash(最后这个是执行的命令) | 
+| exit  |  docker 容器退出 | exit | 
 | cp [containerId] | 从正在运行的 Docker 容器里面，将文件拷贝到本机 | docker container cp [containID]:app/package.json  | 
 
 ## 制作镜像 && 使用
@@ -139,7 +155,15 @@ systemctl restart docker
 .表示Dockerfile文件的所有路径,.就表示当前路径
 
 5、使用
+- -p 端口映射(容器内的端口映射到主机,p是publish-port缩写)
 docker container run -p 3333:3000 -it express-demo /bin/bash
+- 让 容器 的nginx 80端口 映射主机的8080端口,有人访问了主机的8080端口 他会映射到容器的80端口
+docker run -p 8080:80 nginx
+- -d 后台运行
+docker run -d -p 8080:80 nginx
+- top 查看进程 containerId只需要输入部分
+docker container top [containerId]
+- 一般一个服务对应一个docker 容器
 
 6、发布
 docker login

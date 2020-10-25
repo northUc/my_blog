@@ -639,11 +639,13 @@ function factorial(num){
 - 读取属性特征
   - Object.getOwnPropertyDescriptor('对象','属性') 可以获取属性的特征 也就是上面的配置
 ## 创建对象
+- 1、字面量
 ```js
-//  1、字面量
 //   let obj = new Object()
 //   缺点:产生大量重复的代码
-// 2、工场模式
+```
+- 2、工场模式
+```js
 //   function createObj(){
 //     let obj = new Object()
 //     return obj
@@ -652,7 +654,9 @@ function factorial(num){
 //   var a1 = createObj()
 //   var a2 = createObj()
 //   缺点:没有解决对象识别问题(怎样知道一个对象的类型)
-// 3、构造函数
+```
+- 3、构造函数
+```js
 //   function Person(name){
 //     this.name = name
 //     this.sayName = ()=>{}
@@ -667,7 +671,10 @@ function factorial(num){
 //     }
 //     function fn(){}
 //   缺点 每个实例确实只创建了一次fn 但是fn成了全局的了
-// 4、原型模式
+```
+
+- 4、原型模式
+```js
 //   function Person(){
 //     this.arr = []
 //   }
@@ -684,7 +691,10 @@ function factorial(num){
     // 对象的所有实例 
     //   person instanceof Object // true
     //   person instanceof Person // true
-    // 5、构造函数和原型模式组合
+  ```
+
+- 5、构造函数和原型模式组合
+```js
     //   function Person(name){
     //       this.name = name
     //   }
@@ -695,16 +705,18 @@ function factorial(num){
     //     }
     //   }
 ```
-- 继承
+## 继承
+- 1、原型链
 ```js
-// 1、原型链
 //   function SuperType(){
 //     this.arr = []
 //   }
 //   function SubType(){}
 //   SubType.prototype = new SuperType()
 //   缺点:问题就是数据共存,SubType new出来的 实例都能都是拥有公共的arr
-// 2、借用构造函数(call/apply)
+```
+- 2、借用构造函数(call/apply)
+```js
 //   function SuperType(){
 //     this.arr = []
 //   }
@@ -713,7 +725,10 @@ function factorial(num){
 //     this.fn = ()=>{}
 //   }
 //   缺点:方法在构造函数中 无法复用 每次都是重新创建
-// 3、组合(借用构造函数和原型链)
+```
+
+- 3、组合(借用构造函数和原型链)
+```js
 //   function SuperType(name){
 //     this.name = name
 //     this.arr = []
@@ -729,7 +744,10 @@ function factorial(num){
 //   SubType.prototype.constructor = SubType
 //   SubType.prototype.fn1 = ()=>{}
 //   // 缺点 SuperType 会执行2次
-// 4、原型式继承
+```
+
+- 4、原型式继承
+```js
 //   条件 必须要有一个对象可以作为另一个对象的数据, 通过 Object.create() 函数 
 //       第一个是接受的对象 第二个是对对象属性的描述(与Object.defineProperties()第二个参数一样)
 //   let person = {
@@ -743,7 +761,10 @@ function factorial(num){
 //     }
 //   })
 //   使用场景  让一个对象跟另一个对象保持相似的情况下
-// 5、寄生组合式继承
+```
+
+- 5、寄生组合式继承
+```js
 //   function fn(subType,superType){
 //     var p = Object(subType.protoType)
 //     p.constructor = subType
@@ -791,3 +812,347 @@ function factorial(num){
   // }
   // obj.fn()() //the window  
 ```
+## window
+- 它作为全局对象的根 所有的全局变量和方法都放在他下面
+- delete
+> 能删除 window.a = 'xx'(或者 a = 'xx') ;delete window.a  a=>undefined  因为window 属性有个[[configurable]] 为false 
+  但是不能删除 var a = '1'; delete window.a  a=>1 
+
+- 窗口位置
+> screentX/screentY screentLeft/screentTop   
+
+- 窗口大小
+```js
+// outerHeight/outerWidth 浏览器所有的宽高(包括边框等能看到的东西)
+// innerHeight/innerWidth 浏览器可视区的宽高
+// window.open($1,$2,$3)
+//   $1
+//     url
+//   $2 
+//     _blank - URL加载到一个新的窗口。这是默认
+//     _parent - URL加载到父框架
+//     _self - URL替换当前页面
+//     _top - URL替换任何可加载的框架集
+//     name - 窗口名称
+//   $3 窗口的大小 当有值的时候 _blank 在新的页面中打开
+//     height/width/top/left 等 
+//   注意 let w = window.open($1,$2,$3)  要将w.opener=null 因为新窗口的opener 指向当前window 
+//       a 标签也是也有问题 处理：添加noopener 属性
+//       通过 window.opener.location = newURL 来修改原来网页的url    
+```
+-  系统对话框
+```js
+// alert() 弹出框
+// confirm() 显示 确认 和 取消 有返回值
+// prompt() 显示 确认 和 取消 自带一个输入框 有返回值
+```
+-  location 
+```js
+// window.location和document.location 应用的是同一个对象
+//     hash      '#xxxx'
+//     host      'www.xxx.com:80'
+//     hostname  'wwww.xxx.com'
+//     href      'http://www.xxx.com'  完整的url  location.toString 也返回这个
+//     pathname  '/xxx/'
+//     port      '8080'
+//     protocol  'http:'
+//     search    '?q=x'    
+//     操作 
+//       下面3个方法 都一样 跳转URL
+//       location.assign('xxxx')  window.location='xx'  location.href='xx' 
+//     以上操作 除了hash 其他的设置修改 都会触发浏览器的重新加载
+//     以上所有操作都会产生一条记录  但是使用replace('只接受一个参数') 不会产生记录
+//     location.reload() //重新加载 (可能走缓存) 
+//     location.reload(true) //重新加载 (从服务器重新加载) \
+```
+-  navigator
+  - 记录浏览器的信息
+  - 1、检查插件 主要plugins 每个里面的name(IE不支持,书上有暂时不记录了)
+  - navigator.plugins
+```js
+// function hasPlugin(name){
+//   name = name.toLowerCase();
+//   for(let i=0;i<navigator.plugins.length;i++){
+//     if(navigator.plugins[i].name.toLowerCase().indexOf(name)>-1){
+//       return true
+//     }
+//   }
+// }
+// hasPlugin('Flash')
+```
+  - 2、浏览器信息 
+  -  navigator.userAgent 
+```js
+// screen 显示了一堆浏览器的数据(具体看书)
+// history 书上介绍的少
+//   length 属性保存着历史记录  设置为0  即情况历史记录
+//   go('xx') 页面跳转
+//   back()   向后
+//   forward()向前
+```
+## DOM
+- html 元素通过元素节点来表示,节点类型一起12个
+- dom.nodeType(1 元素, 2属性, 3 文本,8 注释,9 跟节点)
+- dom.nodeName 元素的标签名 只有元素节点才有
+### 节点关系
+- dom.parentNode 
+- dom.childNodes
+- dom.previousSibling
+- dom.nextSibling 
+- dom.firstChild
+- dom.lastChild  (父元素下的第一个节点(节点和元素 是2个东西)
+- dom.ownerDocument (指向当前的document(每个节点都有))
+### 节点操作
+- parentNode.appendChild(node)  往父节点内插入一个节点
+- parentNode.insertBefore(node,flagNode) 一个参数 插入到第二个 目标元素 之前(若为空 效果等同于appendChild,必须有2个参数)
+- parentNode.replaceChild(node1,node2) 第一个节点 替换 第二个节点
+- parentNode.removeChild('node') 要移除那个节点
+- 以上4个操作 都是在父节点下使用,同时必须要有子节点,否则会报错(文本节点就不行)
+- clone(false) 浅拷贝  
+  - clone(true) 浅拷贝  拷贝的时候要注意id
+### document
+- body 属性 直接指向document.body
+- doctype 属性来访问 <!DOCTYPE html> 实体
+- URL  === location.href 获取完整的url
+- domain === location.hostname 获取域名
+- referrer 获取来源页面的URL 
+- 特例:
+  - document.domain 阔以处理同不同页面  共同主域的页面跨域
+- 1、以上只有domain 可以设置值 由于跨域的考虑 只能设置URL 包含的域
+  - (例如 url: p2p.xx.com(紧绷型)  => 只能设置成xx.com(松散型))
+- 2、domain 一开始是松散型 就不能设置成紧绷型 过来阔以
+### 查找元素
+- getElementById()  id区别大小写 
+- getElementsByTagName('标签名或者*') 标签名不区分大小写 * 是匹配所有的标签(html标签也会返回,按顺序放在数组内) 动态获取的(随着标签变化)
+- getElementsByName('xss') 获取name值是xss 的节点
+- 特例
+  - document.anchors 所有带name特性的 a标签
+  - document.forms === document.getElementByTagName('form')
+  - document.images === document.getElementByTagName('img')
+  - document.links 所有带 href的 a标签
+  - 写入
+  - write()/writeln()  都接收一个字符串 后者会默认添加一个\n
+    - 还阔以 动态写入 script 标签
+  - open()/close() 分别用于打开和关闭网页的流输出
+### Element 
+- 属性 id/class/title/lang/dir
+- dir 值ltr(从左到右) rtl(从右到左)
+-  getAttribute()  不区分大小写 
+>  获取元素的属性  自定义的也可以
+    另外 dom.属性 不能获取到自定义 也不区分大小写
+    属性获取和getAttribute方法获取 两个特例会不同
+    
+>  1、style 属性获取返回一个对象  方法获取会返回只返回内联样式设置的
+   2、onclick 属性获取的是函数    方法获取的是一个onclick里面的字符串 
+- setAttribute()
+>  设置属性 属性或者setAttribute 增加的自定义属性 双方都不能获取到
+  方法设置的属性 会显示在html 结构中,属性增加的不会
+  方法设置的 不管大小写 都统一转成 小写
+-  removeAttribute()
+  -  删除属性
+>   attributes 获取元素所有的属性 返回的是一个集合
+    nodeValue nodeName 某一个属性的 key和value
+    createElement 方法创建一个元素  不区分大小写
+### 文本
+  - appendData('zz') 将text添加到节点的末尾
+  - deleteData(offset,count) 删除指定位子的 个数
+  - insertData(offset,text)
+  - replaceData(offset,count,text)
+  - splitText(offset) 分隔文本节点
+  - createTextNode 创建文本节点
+### 动态脚本
+  - 创建的脚本 阔以放到body也阔以放到head中
+```js
+  let script = document.createElement('script');
+  script.type = 'text/javascript'
+  let code = "function sayHi(){alert('hi')}; sayHi()"
+  script.appendChild(document.createTextNode(code))
+  document.body.appendChild(script)
+```
+### 动态样式
+>  只有link和style标签能够把css样式包含到html中
+  必须将link标签添加到head中而不是body
+  加载外部样式文件的过程是异步的
+
+### 选择符
+```js
+// document.querySelector('选择符') 静态获取的 不会随着元素多少而变化
+// document.querySelectorAll('选择符')
+// document.childElementCount 返回子元素的个数
+// getElementsByClassName('') 传入class 返回目标元素 动态获取的
+// dom.classList 获取所有的class 是一个集合 同时阔以对他设置(传入的也是数组或者集合)
+//   他有一系列操作方法
+//   add(value) 添加列表中 值存在了就不添加了
+//   contains(value) 列表中是否存在
+//   remove(value) 从列表中删除
+//   toggle(value) 如果列表中有值就删除,没有就添加
+```
+### 焦点
+  - document.activeElement === 触发焦点的元素
+### readyState 属性
+>   他来实现一个指示文档已经加载完成的指示器
+    loading 正在加载文档
+    complete 加载完文档完 配合onload 事件 
+### 浏览器模式(document.compatMode)
+```js
+  // 标准模式值 'CSS1Compat' (<!DOCTYPE html>)
+  // 混杂模式 'BackCompat'
+```
+###  标签自定义属性
+```js
+// 添加 格式 data-xxx(data-开头)
+// 访问 dataset.xxx
+```
+###  插入标记
+- innerHTML 
+```js
+  // 只读模式:返回元素所有的子节点
+  // 写模式:插入的内容 会覆盖原有的子节点
+  // 插入 script标签(暂时没有成功)
+  // 插入 style标签
+  // dom1.innerHTML = '<style type=\"text/css">body{background-color:red}</style>'
+```
+- outerHTML 
+  - 相对innerHTML 会把自身加上去
+- insertAdjacentHTML(位子,插入的文本)
+  - beforebegin 在当前元素之前插入一个紧邻的同辈元素
+  - afterbegin 在当前元素之下插入一个新的子元素
+  - beforeend 在当前元素之下插入一个新的子元素
+  - afterend 在当前元素之后插入一个紧邻的同辈元素
+### scrollIntoView() 作用于每一个元素 
+  - 可以让元素滑动 与浏览器顶部(true 默认)或者底部对齐(false) 聊天界面用它
+  - dom1.scrollIntoView(false);
+### children 返回元素元素的子节点 文本会过滤掉
+  - 与childNodes比较(childNodes 什么节点都会返回 children只会返回元素的子节点)
+### contains() 被检测的节点是后代子节点
+  - document.documentElement.contains(document.body)//true
+### compareDocumentPosition 返回节点间的位子关系
+```js
+  // 1   无关
+  // 2   居前 给定节点在DOM树中位于参考节点之前
+  // 4   居后 给定节点在DOM树中位于参考节点之后
+  // 8   包含 给定节点是参考节点的祖先
+  // 16  被包含 给定节点是参考节点的后代
+  // 关系值阔以叠加(2 8,4 16 一般都是一类)
+```
+###  插入文本
+```js
+// innerText 包裹子文档树中的文本 读取时候 他会按照浅入深的顺序
+//   写入值时,结果会删除元素的所有节点 插入节点
+// outerText 读取值的时候同上
+//   写入值时, 会把自己替换掉
+```
+## DOM2
+### style 变化
+  - dom.style 对象下面 有很多属性
+  - 不包含与外部样或者嵌入样式层叠表(只有js设置 和 style 有效)
+  - 访问元素 带-  变成驼峰大小写 
+    - dom.style.color
+    - dom.style.backgroundImage
+  - 设置值的是 一般要给px(单位)
+  - cssText 设置 访问style的css 值是字符串
+  - length 属性是自己设置的style 属性值 阔以通过dom.style[i] 访问到属性
+  - getPropertyValue 通过prop 获取value值
+### 计算样式  
+  - document.defaultView.getComputedStyle(dom,null)
+  - // 等同window.getComputedStyle(dom,null)
+  - 第二参数处理伪元素的 null即没有 若有可以设置为':after'等
+  - 获取元素最后的css 属性值 只读不支持修改
+### 操作样式表
+  - 检查 知否支持 DOM2
+  - document.implementation.hasFeature('styleSheets','2.0')
+  - 获取样式
+    - document.styleSheets 集合获取所有的
+    - styleDom.sheet  获取style的css属性
+  - 修改
+    - 直接对 styleDom.sheet 里面的值进行修改
+  - 创建
+    - style.sheet.insertRule(`.div{ color:blue}`)
+  - 删除  
+    - sheet.deleteRule(0)
+### 元素大小
+- 偏移量
+  - offsetHeight:元素垂直方向上占用的空间大小（包括边框）
+  - offsetWidth:元素水平方向上占用的空间大小（包括边框）
+  - offsetLeft:与父级左边框之间的距离（getElementLeft() 值相同）
+  - offsetTop:与父级右边框之间的距离（getElementTop() 值相同）
+  - clientWidth/clientHeight(不含边框的宽高)
+- 滚动大小(body自带滚动,元素要加overflow)
+  - scrollHeight/scrollWidth 在没有滚动时 就等于元素本身,最小值就是元素本身,主要用来确定元素内容的大小
+    - 带滑动的页面，高度就是documentElement.scrollHeight
+  - scrollLeft/scrollTop 被隐藏左右边的像素 可以设置值 
+```js
+  // 延时处理 不然不生效  不加单位
+  document.documentElement.scrollTop  = '100'
+  document.documentElement.scrollLeft  = '0'
+```
+- dom.getBoundingClientRect() 获取元素的位子信息
+### 遍历
+- NodeIterator
+  - document.createNodeIterator(root,whatToShow,filter,entityReferenceExpansion) 下面的遍历的用法 实际参数参考书籍
+  - NodeIterator 类型中只要是 nextNode()和previousNode()进行遍历,他是深度优先遍历
+```html
+  <div id="div1">
+    <p><b>122</b> world!</p>
+    <ul>
+      <li>List item 1
+        <span>1111111</span>
+      </li>
+      <li>List item 2</li>
+      <li>List item 3</li>
+    </ul>
+  </div>
+
+  <script>
+    let dom = document.querySelector('#div1')
+    var filter = function(node){
+      // FILTER_ACCEPT 显示当前的信息 
+      // FILTER_SKIP 过滤当前的信息
+      return node.tagName.toLowerCase() === 'li'? NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP
+    }
+    let iterator = document.createNodeIterator(dom,NodeFilter.SHOW_ELEMENT,filter,false)
+    let rs = iterator.nextNode()
+    while(rs){
+      console.log(rs.tagName)
+      rs = iterator.nextNode()
+    }
+  </script>
+```
+- TreeWalker 比 NodeIterator 高级用法参数一样,但是多了几个api
+  - 除了 nextNode 和 previousNode 方法之外
+  - parentNode
+  - firstChild 
+  - lastChild
+  - nextSibling
+  - previousSibling
+## 事件
+- 事件流，'DOM2级事件'规定的事件包括三个阶段,事件捕获阶段,处理目标和事件冒泡阶段
+- 传播流程:1、目标在捕获开始,但是不会接收到事件。2、处于目标阶段，事件处理。3、冒泡阶段,事件又传播会文档
+### UI事件
+- load 
+  - 1、当页面完全加载(所有资源),就会触发window上的load事件
+  - 2、图片加载完成也会触发img上的load事件(注意,事件要在src赋值之前指定)
+  - 3、script 动态加载js文件是否加载完毕(注意,事件和src顺序没有关系)
+- resize事件/scroll事件
+  - resize，浏览器窗口调整新的高度和宽度,浏览器窗口最大小化，就会触发resize,绑定在window上(一般浏览器窗口变化了1px像素才会触发)
+  - scroll，浏览器滑动触发
+### 焦点事件(还有其他的不常用具体看书)
+- blur事件 失去焦点时候发出,不会冒泡
+- focus事件 聚集焦点,不会冒泡
+### 鼠标事件(具体的看书)
+- click 鼠标和enter键都可以触发
+- dblclick 双击 (注意 click 和dblclick 依赖于mousedown和mouseup事件触发而触发,mousedown和mouseup不依赖别的)
+- mousedown 鼠标按下任意键
+- mouseenter/mouseleave 进入离开 不会冒泡
+- mousemove 移入
+- mouseover/mouseout 进去移除  会冒泡
+- mouseup 鼠标抬起
+### 键盘事件
+- keydown/keypress 按下任意键 都会触发 可重复触发
+- 文本事件 textInput 处理文件输入框的事件,在文本变化前面触发(e.data获取输入的值)
+### h5事件
+- DOMContentLoaded事件 等待dom树形成之后就会触发,load 事件是等所有资源和dom形成之后触发
+- readyStatechange事件 指元素或者文档加载状态 (只要支持他的 都有一个readyState事件,有5个阶段从促使化到加载完成具体看书)
+- hashchange 事件window下的事件,只要url#后的参数变化 就会触发
+### 事件委托
+- 利用事件冒泡,指定一个事件处理程序,管理某一类型的所有事件

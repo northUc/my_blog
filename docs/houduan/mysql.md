@@ -25,15 +25,25 @@
     先建主表数据 在建子表数据
     先删子标数据 在删主表数据
 ```
-
-## 基本查询操作
+## SQL
+```js
+// 插入
+INSERT INTO student(name,idcard,age,city) VALUES('王五','5',NULL,'上海')
+// 查询
+SELECT * FROM student;
+// 更新
+UPDATE student SET age=33,city='深圳11' WHERE id=3 AND age='331';
+// 删除
+DELETE FROM student WHERE id=3;
+```
+## 查询
 ```js
   //常规
   select 列名
   FROM  表名
   WHERE 查询条件表达式
   ORDER BY 排序的列名 ID ASC或者DESC
-
+  
   // as 是别名 2 '和' 是常量列
   SELECT id as '主键',name as '姓名',2 '和'
   FROM student
