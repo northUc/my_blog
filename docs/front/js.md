@@ -364,6 +364,12 @@ Math.floor(Math.random()*x)
 // 0- x
 Math.round(Math.random()*x)
 ```
+### 对象遍历
+- for in 循环遍历对象自身的和继承的可枚举属性（不含 Symbol 属性）
+- Object.keys(obj) 返回一个数组，包括对象自身的（不含继承的）所有可枚举属性（不含 Symbol 属性）的键名。
+- Object.getOwnPropertyNames(obj) 返回一个数组，包含对象自身的所有属性（不含 Symbol 属性，但是包括不可枚举属性）的键名。
+- Object.getOwnPropertySymbols 返回一个数组，包含对象自身的所有 Symbol 属性的键名。
+- Reflect.ownKeys(obj) 返回一个数组，包含对象自身的（不含继承的）所有键名，不管键名是 Symbol 或字符串，也不管是否可枚举。
 ### 数组方法
 - （4个增加，替倒牌，forEach，连脚截，every one 重 过 index）
 - 数组累加 用 forEach 和 reduce

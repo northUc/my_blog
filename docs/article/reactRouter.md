@@ -23,10 +23,13 @@
   - replaceState 对比上一个  这个方法替换之前的 上面的添加新的
 - onpopstate 出栈监听 (监听弹出状态的事件  出栈 点击浏览器的前进后对都会触发),没有进栈事件需要自己定义
 ```js
+// 模拟 监听进栈方法
 window.onpushstate = function(state,title,url){
+  // 监听到出页面更新处理
   console.log(state)
 }
 let oldPush = window.history.pushState
+// pushState 是进栈操作, 原生的 onpopstate 是监听出栈操作的
 window.history.pushState = function(state,title,url){
   oldPush.call(window.history,state,title,url)
   window.onpushstate(state,title,url)

@@ -524,51 +524,93 @@ fn(array)
 ```
 ## 数组转tree
 - 二维数组
+- 把二维数组 里面的string 转成对象,在吧后面的对象 往前面push(过滤)
 ```js
-let input = [
-      ["新闻", "体育", "网球", "国外"],
-      ["新闻", "体育", "网球", "国内"],
-      ["产品", "互联网", "金融"],
-      ["新闻", "房产", "深圳"],
-      ["新闻", "房产", "上海"],
-      ["新闻", "体育", "羽毛球"],
-      ["产品", "互联网", "保险"]
-  ]
+let input = [
+  ["新闻", "体育", "网球", "国外"],
+  ["新闻", "体育", "网球", "国内"],
+  ["产品", "互联网", "金融"],
+  ["新闻", "房产", "深圳"],
+  ["新闻", "房产", "上海"],
+  ["新闻", "体育", "羽毛球"],
+  ["产品", "互联网", "保险"]
+]
 
-  function createTreeFromArray(arr) {
-    const cache = {};
-    const root = {
-      child: [],
-    };
 
-    for (let i = 0; i < arr.length; i += 1) {
-      for (let j = 0; j < arr[i].length; j += 1) {
-        const element = arr[i][j];
-        if (!cache[element]) {
-          console.log('elem',element)
-          cache[element] = {
-            name: element,
-          };
-        }
-        if (j > 0) {
-          const parent = cache[arr[i][j - 1]];
-          if (parent) {
-            parent.child = []
-            if (parent.child.indexOf(cache[element]) < 0) {
-              parent.child.push(cache[element]);
-            }
-          }
-        } else {
-          if (root.child.indexOf(cache[element]) < 0) {
-            root.child.push(cache[element]);
-          }
+function createTreeFromArray(arr) {
+  let cache = {}
+  let root = []
+  for(let i=0;i<arr.length;i++){
+    for(let j=0;j<arr[i].length;j++){
+      let element = arr[i][j]
+      if(!cache[element]){
+        cache[element] = {
+          name:element
         }
       }
-    }
-
-    return root.child;
+      if(j>0){
+        let parent = cache[arr[i][j-1]]
+        parent.child ? '' : parent.child = [];
+        if(parent.child.indexOf(cache[element])<0){
+          parent.child.push(cache[element])
+        }
+      }else{
+        if(root.indexOf(cache[element])<0){
+          root.push(cache[element])
+        }
+      }   
+    } 
   }
-  console.log('createTreeFromArray',createTreeFromArray(input))
+  return root
+
+}
+console.log('createTreeFromArray',createTreeFromArray(input))
+```
+## 数组里面的对象过滤
+```js
+let arr = [
+  {
+    id:33,
+    name:'33'
+  },
+  {
+    id:44,
+    name:'44'
+  },
+  {
+    id:44,
+    name:'44'
+  },
+  {
+    id:11,
+    name:'11'
+  },
+  {
+    id:22,
+    name:'22'
+  }
+]
+
+function fn(arr){
+  return  arr.filter((i,index)=>index === arr.findIndex(j=>j.id === i.id))
+}
+console.log(fn(arr))
+```
+## 字符串中查找出现次数最多的字
+- 先排序 然后在通过正则 匹配将连续的字符提取
+```js
+let str = 'sssssssweqqesssssss'
+let arr = str.split('').sort().join('')
+console.log(arr)
+let reg = /(\w)\1+/g
+let num = null
+arr.replace(reg,($1,$2)=>{
+    console.log($1)
+    if($1.length>num){
+        num = $1.length
+    }
+})
+console.log(num)
 ```
 ## 对象转换
 ```js

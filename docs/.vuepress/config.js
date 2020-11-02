@@ -17,8 +17,8 @@ module.exports = {
       link: "/operation/"
     },
     {
-      text: "foundation",
-      link: "/foundation/"
+      text: "interview",
+      link: "/interview/"
     },
     {
       text: "article",
@@ -52,7 +52,8 @@ module.exports = {
           "useLibrary",
           "reg",
           "deepWebpack",
-          "ts"
+          "ts",
+          "wqianduan"
         ]
       },{
         title:'react',
@@ -141,7 +142,7 @@ module.exports = {
         ]
       }],
       "/interview/": [{
-        title: "foundation",
+        title: "interview",
         collapsable: false,
         children: [
           "design",

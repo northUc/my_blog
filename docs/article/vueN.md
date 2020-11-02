@@ -1476,6 +1476,7 @@ props:{
 
 ## event
 - 第一个模板编译,我们写的vue语法他会通过ast语法解析,将标签上的属性解析成对象的形式存着
+- 组件阔以定义原生事件和自定义事件,原生dom只能定义原生dom事件
 - 标签内`clickHandle($event)`这个参数实际是源码里面传递过来的,我们传递的方法,会在外面包裹一个函数
 - 修饰符 实际会转换成特定的代码
 ```js
@@ -1589,5 +1590,366 @@ export function createPatchFunction (backend) {
       if (isDef(i.insert)) insertedVnodeQueue.push(vnode)
     }
   }
-
+// 事件 点击执行  他执行的是 里面的函数 如果只有一个函数 直接执行,若多个就遍历数组
+export function createFnInvoker (fns: Function | Array<Function>, vm: ?Component): Function {
+  function invoker () {
+    const fns = invoker.fns
+    if (Array.isArray(fns)) {
+      const cloned = fns.slice()
+      for (let i = 0; i < cloned.length; i++) {
+        invokeWithErrorHandling(cloned[i], null, arguments, vm, `v-on handler`)
+      }
+    } else {
+      // return handler return value for single handlers
+      return invokeWithErrorHandling(fns, null, arguments, vm, `v-on handler`)
+    }
+  }
+  invoker.fns = fns
+  return invoker
+}
 ```
+### event总结
+- event 在编译阶段生成相关的data,对于DOM事件在patch过程中创建阶段和更新阶段生成DOM事件;对于自定义事件,会在组件初始化阶段通过events创建
+- 原生DOM事件和自定义事件主要的区别在于添加和删除的事件方式不一样,并且自动定义事件派发是往当前实例上派发,但是可以利用在父组件环境定义回调函数来实现父子组件的通讯
+
+## slot
+
+
+## vue-router
+### router注册
+- `Vue.use(Router)` vue.use是注册插件,默认每个插件都有一个install方法,vue.use 会默认执行插件的install方法,将Vue传入过去
+- install 主要在每个组件的 
+- beforeCreate 周期 把this和传入的router对象保存
+- 响应式处理`$router`和`$route`
+- 全局注册View和Link组件
+```js
+export function install (Vue) {
+  if (install.installed && _Vue === Vue) return
+  install.installed = true
+
+  _Vue = Vue
+
+  const isDef = v => v !== undefined
+
+  const registerInstance = (vm, callVal) => {
+    let i = vm.$options._parentVnode
+    if (isDef(i) && isDef(i = i.data) && isDef(i = i.registerRouteInstance)) {
+      i(vm, callVal)
+    }
+  }
+
+  Vue.mixin({
+    beforeCreate () {
+      if (isDef(this.$options.router)) {
+        this._routerRoot = this
+        this._router = this.$options.router
+        this._router.init(this)
+        Vue.util.defineReactive(this, '_route', this._router.history.current)
+      } else {
+        this._routerRoot = (this.$parent && this.$parent._routerRoot) || this
+      }
+      registerInstance(this, this)
+    },
+    destroyed () {
+      registerInstance(this)
+    }
+  })
+
+  Object.defineProperty(Vue.prototype, '$router', {
+    get () { return this._routerRoot._router }
+  })
+
+  Object.defineProperty(Vue.prototype, '$route', {
+    get () { return this._routerRoot._route }
+  })
+
+  Vue.component('RouterView', View)
+  Vue.component('RouterLink', Link)
+
+  const strats = Vue.config.optionMergeStrategies
+  // use the same hook merging strategy for route hooks
+  strats.beforeRouteEnter = strats.beforeRouteLeave = strats.beforeRouteUpdate = strats.created
+}
+```
+### VueRouter 实例化做了那些事
+- VueRouter 实例化的时候 主要接受routes路由配置
+- 核心处理 createMatcher 初始化就是根据路由配置描述创建映射表,包括路径、名称到路由record的映射关系
+- match会根据传入的位子和路径计算出新的位子,并匹配到对应的路由record,然后根据新的位子和record创建新的路径并返回
+- addRoutes 就是动态添加路由,往映射表里面
+```js
+const router = new Router({
+    base: settings.routeBase || '/',
+    mode: settings.routeMode || 'history',
+    routes:routes
+});
+
+export function createMatcher (
+  routes: Array<RouteConfig>,
+  router: VueRouter
+): Matcher {
+  // createRouteMap 处理我们传递的routes 生成一个路由映射表
+  const { pathList, pathMap, nameMap } = createRouteMap(routes)
+  // 动态往添加route映射 在已有的基础上 进行修改 添加
+  function addRoutes (routes) {
+    createRouteMap(routes, pathList, pathMap, nameMap)
+  }
+  // 匹配路径 映射到路由的
+  function match( raw: RawLocation,
+    currentRoute?: Route,
+    redirectedFrom?: Location
+  ): Route {
+    // 根据传入的路径和当前的路径 返回一个新的路径
+    const location = normalizeLocation(raw, currentRoute, false, router)
+    const { name } = location
+    // 用name 去 nameMap映射表里面查找record 找到了就创建route 否则就返回null
+    if(name){
+      // ......
+    }else{
+      // ......
+    }
+    return _createRoute(........., location)
+  }
+// 。。。。。。。。
+  return{
+    addRoutes,
+    match
+  }
+}
+
+// 生成rout映射表
+export function createRouteMap (
+  routes: Array<RouteConfig>,
+  oldPathList?: Array<string>,
+  oldPathMap?: Dictionary<RouteRecord>,
+  oldNameMap?: Dictionary<RouteRecord>
+): {
+  pathList: Array<string>,
+  pathMap: Dictionary<RouteRecord>,
+  nameMap: Dictionary<RouteRecord>
+} {
+  const pathList: Array<string> = oldPathList || []
+  const pathMap: Dictionary<RouteRecord> = oldPathMap || Object.create(null)
+  const nameMap: Dictionary<RouteRecord> = oldNameMap || Object.create(null)
+
+  routes.forEach(route => {
+    addRouteRecord(pathList, pathMap, nameMap, route)
+  })
+
+  if (process.env.NODE_ENV === 'development') {
+    const found = pathList
+      .filter(path => path && path.charAt(0) !== '*' && path.charAt(0) !== '/')
+    if (found.length > 0) {
+      const pathNames = found.map(path => `- ${path}`).join('\n')
+      warn(false, `Non-nested routes must include a leading slash character. Fix the following routes: \n${pathNames}`)
+    }
+  }
+
+  return {
+    pathList,
+    pathMap,
+    nameMap
+  }
+}
+```
+### 路径切换-生命周期
+- 在mixin beforeCreate 的时候 会执行 `this._router.init(this)` init函数会进行路由的跳转,核心的跳转逻辑就是 transitionTo
+- queue 收集的route的各种钩子,runQueue 会依次执行queue数组的钩子
+```js
+/*
+  1、组件离开守卫 先子后父 beforeRouteLeave
+  2、调用全局的 beforeEach
+  3、组件的更新 先父后子 beforeRouteUpdate
+  4、路由的配置里面的 beforeEnter
+  5、解析异步组件
+  6、进入组件的钩子 beforeRouteEnter 
+  7、调用全局的 beforeResolve
+  8、导航更新
+  9、调用全局的 afterEach
+  dom更新
+  10、组件更新 执行 beforeRouteEnter的回调函数  将组件实例作为回调的参数传入
+*/
+```
+```js
+ 
+export default class VueRouter {
+  static install: () => void
+  static version: string
+  static isNavigationFailure: Function
+  static NavigationFailureType: any
+
+  constructor (options: RouterOptions = {}) {
+  this.matcher = createMatcher(options.routes || [], this)
+    
+  init (app: any /* Vue component instance */) {
+    this.apps.push(app)
+    this.app = app
+    const history = this.history
+    if (history instanceof HTML5History || history instanceof HashHistory) {
+      const handleInitialScroll = routeOrError => {
+        const from = history.current
+        const expectScroll = this.options.scrollBehavior
+        const supportsScroll = supportsPushState && expectScroll
+
+        if (supportsScroll && 'fullPath' in routeOrError) {
+          handleScroll(this, routeOrError, from, false)
+        }
+      }
+      const setupListeners = routeOrError => {
+        history.setupListeners()
+        handleInitialScroll(routeOrError)
+      }
+      // 路径切换的入口
+      history.transitionTo(
+        history.getCurrentLocation(),
+        setupListeners,
+        setupListeners
+      )
+    }
+
+    history.listen(route => {
+      this.apps.forEach(app => {
+        app._route = route
+      })
+    })
+  }
+
+  beforeEach (fn: Function): Function {
+    return registerHook(this.beforeHooks, fn)
+  }
+
+  beforeResolve (fn: Function): Function {
+    return registerHook(this.resolveHooks, fn)
+  }
+
+  afterEach (fn: Function): Function {
+    return registerHook(this.afterHooks, fn)
+  }
+
+  onReady (cb: Function, errorCb?: Function) {
+    this.history.onReady(cb, errorCb)
+  }
+
+  onError (errorCb: Function) {
+    this.history.onError(errorCb)
+  }
+  // 路径切换的入口
+  push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    // $flow-disable-line
+    if (!onComplete && !onAbort && typeof Promise !== 'undefined') {
+      return new Promise((resolve, reject) => {
+        this.history.push(location, resolve, reject)
+      })
+    } else {
+      this.history.push(location, onComplete, onAbort)
+    }
+  }
+  // 路径切换的入口
+  replace (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    // $flow-disable-line
+    if (!onComplete && !onAbort && typeof Promise !== 'undefined') {
+      return new Promise((resolve, reject) => {
+        this.history.replace(location, resolve, reject)
+      })
+    } else {
+      this.history.replace(location, onComplete, onAbort)
+    }
+  }
+}
+
+// transitionTo
+  transitionTo (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    let route
+    // catch redirect option https://github.com/vuejs/vue-router/issues/3201
+      route = this.router.match(location, this.current)
+    // ...........  
+    const prev = this.current
+    this.confirmTransition(
+      route,
+      () => {
+        // 8、导航更新
+        this.updateRoute(route)
+        onComplete && onComplete(route)
+        this.ensureURL()
+        // 9、调用全局的 afterEach
+        this.router.afterHooks.forEach(hook => {
+          hook && hook(route, prev)
+        })
+
+        // fire ready cbs once
+        if (!this.ready) {
+          this.ready = true
+          this.readyCbs.forEach(cb => {
+            cb(route)
+          })
+        }
+      },
+      err => {
+          // .......
+      }
+    )
+// confirmTransition
+confirmTransition (route: Route, onComplete: Function, onAbort?: Function) {
+   const queue: Array<?NavigationGuard> = [].concat(
+      // in-component leave guards
+      // 1、组件离开守卫 先子后父 beforeRouteLeave
+      extractLeaveGuards(deactivated),
+      // global before hooks
+      // 2、调用全局的 beforeEach
+      this.router.beforeHooks,
+      // in-component update hooks
+      // 3、组件的更新 先父后子 beforeRouteUpdate
+      extractUpdateHooks(updated),
+      // in-config enter guards
+      // 4、路由的配置里面的 beforeEnter
+      activated.map(m => m.beforeEnter),
+      // async components
+      // 5、解析异步组件
+      resolveAsyncComponents(activated)
+    )
+    runQueue(queue, iterator, () => {
+      // wait until async components are resolved before
+      // extracting in-component enter guards
+      // 6、进入组件的钩子 beforeRouteEnter 
+      const enterGuards = extractEnterGuards(activated)
+      // 7、调用全局的 beforeResolve
+      const queue = enterGuards.concat(this.router.resolveHooks)
+      runQueue(queue, iterator, () => {
+        if (this.pending !== route) {
+          return abort(createNavigationCancelledError(current, route))
+        }
+        this.pending = null
+        // 8、导航更新
+        onComplete(route)
+        if (this.router.app) {
+          this.router.app.$nextTick(() => {
+            handleRouteEntered(route)
+          })
+        }
+      })
+    })
+}
+// runQueue
+export function runQueue (queue: Array<?NavigationGuard>, fn: Function, cb: Function) {
+  const step = index => {
+    if (index >= queue.length) {
+      cb()
+    } else {
+      if (queue[index]) {
+        fn(queue[index], () => {
+          step(index + 1)
+        })
+      } else {
+        step(index + 1)
+      }
+    }
+  }
+  step(0)
+}
+```
+## store
+- vue状态集中管理
+- vue和单纯的全局对象 区别
+  - vue的状态是响应式
+  - 不能直接store的状态,必须要通过mutation处理,便于管理
+- 总结 store 就是一个数据仓库,为了更方便的管理仓库,我们把一个大的store拆成一些modules,整个modules是一个
+树型结构,每个module又分别定义了state,getters,mutations,actions,我们也通过递归遍历模块的方式都完成了他们的初始化
