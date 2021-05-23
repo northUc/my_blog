@@ -1,13 +1,32 @@
 {
-  "name": "",
-  "version": "",
+  "name": "b",
   "scripts": {
     "dev": "vuepress dev docs",
     "build": "vuepress build docs",
     "deploy": "bash deploy.sh"
   },
   "dependencies": {
+    "express": "^4.17.1",
     "vuepress": "^0.14.4",
     "webpack-dev-middleware": "^3.6.0"
-  }
+  },
+  "description": "## 简介",
+  "version": "1.0.0",
+  "main": "test.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaoqi7777/b.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xiaoqi7777/b/issues"
+  },
+  "homepage": "https://github.com/xiaoqi7777/b#readme"
 }
