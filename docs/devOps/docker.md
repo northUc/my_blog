@@ -47,7 +47,7 @@ systemctl restart docker
 | 命令        | 含义       |  案例|
 | ----------- | ----------| ---- |
 | images | 查看全部镜像 | docker image ls|
-| search | 查找镜像 | docker image search [imageName]|
+| search | 查找镜像 | docker search [imageName]|
 | pull | 拉取镜像 | docker image pull [imageName]|
 | rmi | 删除镜像 | docker image inspect [imageName]|
 | rmi | 镜像信息 | docker image rmi [imageName]|
@@ -72,7 +72,7 @@ systemctl restart docker
 | rm [containerId] | 删除容器 | docker rm [containerId] | 
 | start [containerId] | 启动已经生成、已经停止运行的容器文件 | docker start [containerId] | 
 | stop [containerId] | 终止容器运行 (发送 SIGTERM ) | docker stop [containerId] | 
-| logs [containerId] | 查看 docker 容器的输出 | docker logs [containerId] | 
+| logs [containerId] | 查看 docker 容器的输出 | docker logs --follow [containerId] | 
 | attach [containerId]| 进入容器 | docker attach [containerId]|
 | run [containerId] | 进入一个正在运行的 docker 容器 | docker container  run -it [container] /bin/bash(最后这个是执行的命令) | 
 | exit  |  docker 容器退出 | exit | 
@@ -108,7 +108,7 @@ systemctl restart docker
 :::
 
 ### Dockerfile编写例子 && 使用
-```js
+```yaml
 1、node 安装
     wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
     source ~/.bashrc
@@ -167,9 +167,9 @@ docker container top [containerId]
 
 6、发布
 docker login
-docker image tag [imageName] [username]/[repository]:[tag]
+docker image tag [north_uc_1] [username]/[repository]:[tag]
 docker image build -t [username]/[repository]:[tag] .
-
+# songge songge  账号密码 https://hub.docker.com
 docker tag express-demo songge/express-demo:1.0.0
 docker push songge/express-demo:1.0.0
 ```
@@ -445,4 +445,123 @@ server {
         proxy_pass http://backend;
     }
 }
+```
+
+## Dockerfile 制作nginx => nginx 静态目录
+- mkdir conf/nginx.conf
+```yaml
+#user  nobody;
+
+events {
+    worker_connections  1024;
+    use epoll;
+}
+http {
+    include mime.types;
+    default_type  application/octet-stream;
+    server {
+        listen 80;
+        server_name  _;
+        root /etc/nginx/html/;
+        location / {
+            try_files $uri /index.html;
+            root /etc/nginx/html/;
+        }
+    }
+}
+```
+- Dockerfile
+  - 利用`conf/nginx.conf` 替换`nginx`里面的`/etc/nginx/`的核心文件
+```yaml
+FROM nginx:1.15-alpine
+COPY build /etc/nginx/html
+COPY conf /etc/nginx/
+WORKDIR /etc/nginx/html
+```
+- mkdir `build/index.html`
+```html
+test1
+```
+- tag
+```yaml
+docker tag express-demo songge/express-demo:1.0.0
+docker push songge/express-demo:1.0.0 
+```
+## 私服
+- 部署 Nexus 服务
+- nexus-3.29.0-02 是nexus主程序文件夹
+- sonatype-work 则是数据文件
+- nexus 还支持停止，重启等命令。可以在 bin 目录下执行 ./nexus help 查看更多命令
+```yaml
+cd /usr/local
+wget https://dependency-fe.oss-cn-beijing.aliyuncs.com/nexus-3.29.0-02-unix.tar.gz
+tar -zxvf ./nexus-3.29.0-02-unix.tar.gz
+cd nexus-3.29.0-02/bin
+./nexus start
+
+firewall-cmd --zone=public --add-port=8081/tcp --permanent
+firewall-cmd --zone=public --add-port=8082/tcp --permanent
+
+http://8.144.177.239:8081/
+```
+### 配置 Nexus 
+- 可以使用admin用户登录Nexus
+- 注意请立即更改密码
+- Enable anonymous access
+```yaml
+cat /root/sonatype-work/nexus3/admin.password 
+```
+## 创建Docker私服
+- 密码:Sg920322
+- 登录 => 齿轮图标 => Repositories => Create repository => docker(hosted) => HTTP(8082)
+  -  8082 修改仓库的port 默认是8081
+- proxy: 此类型制品库原则上只下载，不允许用户推送
+- hosted：此类型制品库和 proxy 相反，原则上 只允许用户推送，不允许缓存。这里只存放自己的私有镜像或制品
+- group：此类型制品库可以将以上两种类型的制品库组合起来
+
+## 添加访问权限
+- 齿轮图标 => Realms => Docker Bearer Token Realm => 添加到右边的 Active =>保存
+- copy http://118.190.142.109:8081/repository/dockcer-repository/
+
+## 登录制品库
+- 默认情况下不能识别http协议的  他认为不安全 需要加下面配置 ip是仓库地址
+- vi /etc/docker/daemon.json
+```yaml
+{
+  # 通过https 请求
+  "insecure-registries" : [
+    "8.144.177.239:8082"
+  ],
+  "registry-mirrors": ["https://fwvjnv59.mirror.aliyuncs.com"]
+}
+
+systemctl restart docker # 记得要重启
+docker login 8.142.41.191:8082 //注意此处要和insecure-registries里的地址一致
+Username: admin
+Password: Sg920322
+```
+### 推送镜像到制品库
+-  设置界面 => 构建环境 => 勾选 Use secret text(s) or file(s) => 新增选择 => Username and password (separated)
+  -  DOCKER_LOGIN_USERNAME
+  -  DOCKER_LOGIN_PASSWORD
+  -  接着在下面指定凭据=>添加jenkins=>选择类型Username with password,输入用户名和密码然后点添加确定
+- 打包的时候 一定要吧ip:port携带上  例如：`8.142.41.191:8082/xxx`,如果不带 push不了
+```yaml
+#!/bin/sh -l
+
+npm install --registry=https://registry.npm.taobao.org
+npm run build
+time=$(date "+%Y%m%d%H%M%S")DOCKER_LOGIN_PASSWORD
+# 在nexus 上会分层显示
+# 8.142.41.191:8082 ip
+# cicd-backend 镜像名字
+# target $time 
+docker build -t 8.142.41.191:8082/cicd-backend:$time .
+docker login -u $DOCKER_LOGIN_USERNAME -p $DOCKER_LOGIN_PASSWORD 8.142.41.191:8082
+docker push 8.142.41.191:8082/cicd-backend:$time
+```
+- 然后就可以查看镜像了,注意端口是8081
+### 拉取私有镜像
+```yaml
+docker pull 8.144.177.239:8082/test4
 ```

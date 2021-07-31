@@ -1,5 +1,5 @@
 # 二进制
-
+[[toc]]
 ## 十进制转二进制
 - 整数部分:除2取余,直到商为0,最先得到的余数是最低位,最后的余数是高位
 - 小数部分:乘2取整,直到积为0或者精确度要求为止,最先得到的整数是高位
@@ -65,15 +65,71 @@ console.log(view1.getInt16(0));//258
 
 console.log(view1.buffer === buffer)
 ```
-## 字符&&base64
+## 字符&&base64 转化
 - window.btoa && window.atob
-- 将字符串转成base64 
+  - 它存在window上
+  - btoa 阔以将 字符串转化成一个base64
+  - atob 将base64 转化成 字符串
 ```js
 let rs =  btoa('xxx')
 // rs 是一个base64字符串
 
 let s = atob(rs)
 // atob 把base64转成字符串 s==='xxx'
+```
+## FileReader && Blob/File 转化
+-  FileReader函数, 读取Blob,他有3个读取的方式,分别生成ArrayBuffer,base64字符串,文本
+  - readAsArrayBuffer生成的是 ArrayBuffer
+  - readAsDataURL生成的是 base64字符串
+  - readAsText生成的是 生成的是一个文本
+```js
+function readBlob(blob,type){
+  return new Promise((resolve)=>{
+    let reader = new FileReader()
+    reader.onload = function(event){
+      resolve(event.target.result)
+    }
+    switch(type){
+      case 'ArrayBuffer':
+      // readAsArrayBuffer生成的是 ArrayBuffer
+        reader.readAsArrayBuffer(blob);
+        break;
+      case 'DataURL':
+      // 二进制数据转换成可读的字符串 base64字符串
+        reader.readAsDataURL(blob);
+        break;
+      case 'Text':
+      // 生成的是一个文本
+        reader.readAsText(blob,'utf-8');
+        break;
+      default:
+        break;
+    }
+  })
+}
+readBlob(blob,'ArrayBuffer').then(rs=>{
+  console.log('ArrayBuffer',rs)
+})
+readBlob(blob,'DataURL').then(rs=>{
+  console.log('DataURL',rs)
+})
+readBlob(blob,'Text').then(rs=>{
+  console.log('Text',rs)
+})
+```
+## File && Blob 转换
+### Blob=>File
+- 用法
+```js
+var file = new File([blob], "foo.png", {
+  type: "image/png",
+});
+```
+### Blob=>File
+```js
+let blob = new Blob([file],{
+    type:'image/png'
+})
 ```
 ## Blob
 - 文件传输,上传下载,都是 Blob格式
@@ -82,6 +138,100 @@ let s = atob(rs)
   - array 是一个由ArrayBuffer, ArrayBufferView, Blob, DOMString(js string) 等对象构成的 Array ，或者其他类似对象的混合体，它将会被放进 Blob。DOMStrings会被编码为UTF-8。
   - options 是一个可选的BlobPropertyBag字典
   - type 默认值为 "",它代表了将会被放入到blob中的数组内容的MIME类型
+
+## OjectURL
+- URL.createObjectURL
+  - 可以获取当前文件的一个内存URL
+  - 利用 DOMString 生成一个 blob 文件下载成json
+```js
+// DOMString
+function download(){
+    let data = 'xxxxx'
+    let blob = new Blob([data],{type:'application/json'})
+    let a = document.createElement('a')
+      a.download = 'user.json'//下载名
+      a.rel = 'noopener'
+      a.href = URL.createObjectURL(blob)
+      a.dispatchEvent(new MouseEvent('click'));
+      URL.revokeObjectURL(blob);//销毁objectURL 也会销毁Blob
+    console.log(blob,URL.createObjectURL(blob))
+  }
+```
+- 利用上传图片下载
+```js
+<input type="file" onchange="handleChange(event)">
+<button onclick="download()">下载</button>
+
+<script>
+  function download(data){
+  let bytes = new ArrayBuffer(data.length)
+  let arr = new Uint8Array(bytes)
+  for(let i=0;i<data.length;i++){
+    arr[i] = data.charCodeAt(i)
+  }
+  let blob = new Blob([arr],{type:'image/png'})
+  let a = document.createElement('a')
+    a.download = 'user.png'//下载名
+    a.rel = 'noopener'
+    // a.href = blob;
+    a.href = URL.createObjectURL(blob)
+    a.dispatchEvent(new MouseEvent('click'));
+    URL.revokeObjectURL(blob);//销毁objectURL 也会销毁Blob
+}
+  function handleChange(e){
+    let file = null;
+    file = e.target.files[0];
+    let fileReader = new FileReader()
+      fileReader.onload = e =>{
+        // atob 是一个全局方法
+        // base64 必须要转换成 字符数 
+        let bytes = atob(e.target.result.split(',')[1])
+        download(bytes)
+      }
+      fileReader.readAsDataURL(file)
+  }
+</script>
+```
+
+## DataURL
+- base64 字符串
+### Blob生成DataURL
+- DataURL阔以直接给img.src 使用
+```js
+function readBlob(blob,type){
+  return new Promise((resolve)=>{
+    let reader = new FileReader()
+    reader.onload = function(event){
+      resolve(event.target.result)
+    }
+    switch(type){
+      case 'ArrayBuffer':
+      // readAsArrayBuffer生成的是 ArrayBuffer
+        reader.readAsArrayBuffer(blob);
+        break;
+      case 'DataURL':
+      // 二进制数据转换成可读的字符串 base64字符串
+        reader.readAsDataURL(blob);
+        break;
+      case 'Text':
+      // 生成的是一个文本
+        reader.readAsText(blob,'utf-8');
+        break;
+      default:
+        break;
+    }
+  })
+}
+readBlob(blob,'ArrayBuffer').then(rs=>{
+  console.log('ArrayBuffer',rs)
+})
+readBlob(blob,'DataURL').then(rs=>{
+  console.log('DataURL',rs)
+})
+readBlob(blob,'Text').then(rs=>{
+  console.log('Text',rs)
+})
+```
 ### input 上传的文件(图片,xlsx等)如何转换成 array
 -  FileReader函数,他有3个读取的方式,分别生成`ArrayBuffer`,`base64字符串`,`文本`
 -  input 上传文件就是一个 Blob
@@ -119,22 +269,6 @@ readBlob(blob,'DataURL').then(rs=>{
 readBlob(blob,'Text').then(rs=>{
   console.log('Text',rs)
 })
-```
-### DOMString && ArrayBuffer 生成的例子
-- 利用 DOMString 生成一个 blob 文件下载成json
-```js
-// DOMString
-function download(){
-    let data = 'xxxxx'
-    let blob = new Blob([data],{type:'application/json'})
-    let a = document.createElement('a')
-      a.download = 'user.json'//下载名
-      a.rel = 'noopener'
-      a.href = URL.createObjectURL(blob)
-      a.dispatchEvent(new MouseEvent('click'));
-      URL.revokeObjectURL(blob);//销毁objectURL 也会销毁Blob
-    console.log(blob,URL.createObjectURL(blob))
-  }
 ```
 -  basr64 => ArrayBuffer => blob,下载图片
 ```html
@@ -199,6 +333,8 @@ function download(){
 </script>
 ```
 ## Canvas
+### imageData => canvas 应用
+### canvas => imageData 应用
 - 图片截图上传 对照上图的api进行
 ```html
 <!DOCTYPE html>
@@ -284,7 +420,6 @@ function download(){
       upload = ()=>{
         // base64格式:类型+,+数据 
         // atob 转换的时候只能对base64的数据进行处理
-        // console.log(atob(state.avatarDataURL))
         let bytes = atob(state.avatarDataURL.split(',')[1])
 
         let arrayBuffer = new ArrayBuffer(bytes.length)
@@ -311,13 +446,16 @@ function download(){
       confirm = (event)=>{
         let ctx = can.getContext('2d')
         // 复制画布上指定矩形的像素数据
+        // canvas => imageData
         const imageData = ctx.getImageData(100,100,100,100)
         let avatar =  document.createElement('canvas')
         avatar.width =100
         avatar.height= 100
         let avatarCtx = avatar.getContext('2d');
         // 然后通过 putImageData() 将图像数据放回画布
+        // imageData => canvas
         avatarCtx.putImageData(imageData,0,0)
+        // base64
         let avatarDataURL = avatar.toDataURL()
         state.avatarDataURL = avatarDataURL
         img1.src = avatarDataURL
@@ -368,37 +506,26 @@ function download(){
         fileReader.readAsDataURL(file)
       }
     </script>
-
 </body>
 </html>
 ```
-- 后台
+## 后台
 - express
 ```js
 // 图片上传
 let express = require('express');
-let bodyParser = require('body-parser');
 let multer = require('multer')
 let fs = require('fs')
 let cors = require('cors');
 let path = require('path')
 let app = express();
 // 处理json格式的请求体
-app.use(bodyParser.json());
+app.use(express.json());
 // 处理表单格式的请求体
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 // 文件上传 upload req.file获取文件的流   dest req.file 获取的保存路径
 let upload = multer({ upload: 'upload/' })
-// var storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null,path.join(__dirname,'/upload'))
-//   },
-//   filename: function (req, file, cb) {
-//     cb(null, Date.now() + "-" + file.originalname)
-//   }
-// })
-// let upload = multer({storage:storage})
 
 app.post('/post', (req, res) => {
   let body = req.body
@@ -413,12 +540,11 @@ app.post('/form', (req, res) => {
 app.post('/upload', upload.single('avatar'), (req, res) => {
   // req.file 里面存放的文件类型的数据
   // req.body 里面存放的普通类型的数据
-  console.log(req.body.name, req.body)
-  console.log(req.file); //req.filr 指的是请求体formData里的avatar 字段对应的文件内容
-  // console.log(req.file.buffer); //req.filr 指的是请求体formData里的avatar 字段对应的文件内容
   if (req.file) {
     let rs = '.'+req.file.mimetype.match(/.+\/(.+)/)[1]
-    fs.writeFileSync(path.join(__dirname, `upload/${req.file.originalname}${rs}`), req.file.buffer)
+	console.log('rs', req.file);
+	console.log('req.file.originalname', req.file.originalname);
+    fs.writeFileSync(path.join(__dirname, `/${req.file.fieldname}${rs}`), req.file.buffer)
   }
   res.send(req.body)
 })
@@ -426,7 +552,7 @@ app.post('/upload', upload.single('avatar'), (req, res) => {
 // xls
 app.post('/xls', upload.single('avatar'), (req, res) => {
   if (req.file) {
-    fs.writeFileSync(path.join(__dirname, `upload/${req.file.originalname}.xls`), req.file.buffer)
+    fs.writeFileSync(path.join(__dirname, `/${req.file.fieldname}.xls`), req.file.buffer)
   }
   res.send(req.body)
 })

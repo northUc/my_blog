@@ -13,8 +13,8 @@ module.exports = {
       link: "/houduan/"
     },
     {
-      text: "operation",
-      link: "/operation/"
+      text: "devOps",
+      link: "/devOps/"
     },
     {
       text: "interview",
@@ -128,8 +128,8 @@ module.exports = {
           "mysql"
         ]
       }],
-      "/operation/": [{
-        title: "operation",
+      "/devOps/": [{
+        title: "devOps",
         collapsable: false,
         children: [
           "git",
@@ -138,7 +138,8 @@ module.exports = {
           "docker",
           "jenkins",
           "vscode",
-          "jest"
+          "jest",
+          "k8s"
         ]
       }],
       "/interview/": [{
