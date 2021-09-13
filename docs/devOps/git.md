@@ -176,3 +176,17 @@ module.exports = {
         "source.fixAll.eslint": true
     },
 ```
+## 修改 commit log
+- 打开历史 最近3条记录
+  - git rebase -i HEAD~3
+  - 将`pick`改为`edit` 然后保存。
+- 接着就是修改日志内容了
+  -   他会打开之前edit 的log
+- 完成编辑日志后，记得执行 git commit --amend
+  - git rebase --continue
+- Rebase目的是打开提交的历史记录，让您选择要修改的内容。 Git会让你在一个新的分支修改内容。 git rebase --continue 则是让你重新回到之前的分支。
+### 合并 log
+- git rebase -i HEAD~3
+- 将pick 修改成 squash(这里注意  如果修改最近的三条,最近的2条修改成squash, 最远的一条不能动)
+- 操作错了 可以取消 git rebase --abort
+- git rebase --continue

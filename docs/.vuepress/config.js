@@ -65,6 +65,7 @@ module.exports = {
           "dva",
           "hook",
           "reactSource",
+          "reactSource16",
           "fiber"
         ]
       },{

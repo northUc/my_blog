@@ -67,8 +67,8 @@
     console.log(this.content)
 ```
 ## 生命周期
-<img :src="$withBase('/img/reactCycle.png')" >
-[blog](https://www.cnblogs.com/qiaojie/p/6135180.html)
+<img :src="$withBase('/img/reactCycle.jpeg')" >
+
 ```js
 开始阶段
   componentWillMount 组件将要渲染

@@ -358,19 +358,13 @@ export default{
     2.2 可以用匿名函数 (event)=>this.handleSubmit(event)
 */
 ```
-## ref&受控和非受控
-- 受控组件
-  - input中的value值通过state值获取，onChange事件改变state中的value值，input中的value值又从state中获取
-- 非受控组件
-  - 非受控也就意味着我可以不需要设置它的state属性，而通过ref来操作真实的DOM。
+## ref
+- 获取实例
+### class
+- 原理很简单，
+  - 如果类组件的虚拟DOM有ref属性,那么就把类组件的实例赋值给ref.current属性
+  - React.createRef() 本身作用就是返回 => { current: null} 
 ```js
-/*
-  ref的用法 + 受控组件和非受控组件
-  reference = 引用 如果我们希望在代码中获取到React元素渲染到页面的真是DOM
-  ref用法三种
-  1、ref='num1'  this.refs.num1 (废弃了)
-  2、ref函数方式 ref={input=>this.num1 = input} (废弃了)
-  3、主流方式
   constructor(props){
     super(props)
     this.num1 = React.createRef();//{current:'null'}
@@ -380,16 +374,27 @@ export default{
   }
   // this.num1.value 就可以获取到值
   <input ref={this.num1}/>
+```
+### 函数
+- 原理, React.forwardRef 返回一个标识,在render的时候 进行代理 传值
+- 函数组件不能这样，因为函数组件没有实例
+```js
+const Hook= (props, forwardRef) =>{
+    return <input ref={forwardRef}/>
+}
+const Rhook = React.forwardRef(Hook);
 
-  input内部会存储自己的值,这个值和react是相互独立的
-  input的值并不受react控制 这个称为非受控组件
-  
-  受控组件 就是value的值受state控制
-  
-  input 组件用value 必须要添加onChange等事件或者 readOnly,value 给'' 不能给null和undefined(他们2个是有值的,受控组件要给空值) 否则会报警告
+constructor(props){
+  super(props)
+  this.num1 = React.createRef();//{current:'null'}
+}
+add=()=>{
+  let num1 = this.num1.current.value
+}
+// this.num1.value 就可以获取到值
+<Rhook ref={this.num1}/>
 
-  <input data-name='num1'>  data-name  在dom.dataset中获取
-*/
+
 ```
 ## 生命周期
 - 创建时  constructor(初始化的时候执行后面一半不执行了) getDerivedStateFromProps render 开始更新 componentDidMount(组件挂载完成)
@@ -484,6 +489,55 @@ export default Counter
 - 2、判断是否是批量更新,是的话,就将当前组件存放到 dirtyComponents(脏组件数组中)。
   - 否的话,就将直接更新当前组件的 update(直接更新dom操作),遍历所有的 dirtyComponents(脏组件)执行他们的update方法(直接更新dom操作)
   - 是的情况下一般是同步,把所有的组件存起来,否的一般是异步情况,因为同步走完了会更新批量为false
+- 一般React能管辖地方就是批量 时间处理 或者 生命周期
+- 一般React能管辖不到地方就是一步， 走宏任务
+```js
+// 默认是批量更新的   setstate 异步更新原理
+let isBatchingUpdate = true
+let transcation = (component)=>{
+    component.state = component.pendingState
+    component.render();
+    isBatchingUpdate = false
+}
+
+class My{
+  constructor(){
+      this.state = {number:0};//自己的状态
+      this.pendingState = {...this.state}
+  }
+  setState(obj){
+      if(isBatchingUpdate){
+          //批量更新 这里直走一次  也就是后面覆盖前面
+          // console.log('批量更新',obj)
+          this.pendingState = {...this.pendingState,...obj}
+      }else{
+          //异步更新 这里走完 一次 在
+          // console.log('异步更新',obj)
+          this.pendingState = {...this.pendingState,...obj}
+          // 每次都会回调自己
+          transcation(this)
+      }
+  }
+  update(){
+    // frist 如果是异步先走 transcation  那么isBatchingUpdate为false setState就会走else里面
+    //       如果是同步 就是直接调用 setState 走if(ture)
+
+      setTimeout(()=>{
+          this.setState({number:this.state.number + 1})
+          this.setState({number:this.state.number + 3})
+          this.setState({number:this.state.number + 2})
+      },0)
+      transcation (this)
+      
+  }
+  render(){
+      // console.log(this.state.number)
+  }
+}
+
+let my = new My()
+my.update()
+```
 ## Immutable
 - Immutable Data 就是一旦创建，就不能再被更改的数据。对 Immutable 对象的任何修改或添加删除操作都会返回一个新的 Immutable 对象
 
