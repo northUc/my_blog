@@ -5,11 +5,11 @@ module.exports = {
     editLinkText: "编辑此页",
     lastUpdated: "上次更新",
     nav: [{
-      text: "前端",
+      text: "front",
       link: "/front/"
     },
     {
-      text: "后端",
+      text: "back",
       link: "/houduan/"
     },
     {
@@ -140,7 +140,8 @@ module.exports = {
           "jenkins",
           "vscode",
           "jest",
-          "k8s"
+          "k8s",
+          "cicd"
         ]
       }],
       "/interview/": [{
