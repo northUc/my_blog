@@ -733,12 +733,22 @@ kubectl get secret admin-auth -o yaml
 - 在这里我们依然可以通过命令行进行创建。只不过类型变成了 docker-registry
 ```yaml
 vim docker-registry.yaml
-
+# [] 要去掉  server 要写仓库的端口
 kubectl create secret docker-registry private-registry \
---docker-username=[sg] \
+--docker-username=[admin] \
 --docker-password=[123456] \
 --docker-email=[123@qq.com] \
---docker-server=[www]
+--docker-server=[ip:8082]
+
+# 配置私有的 建议这个
+kubectl create secret docker-registry private-registry \
+--docker-username=admin \
+--docker-password=Sg920322 \
+--docker-email=501798525@qq.com \
+--docker-server=106.15.106.83:8082
+
+# 或者直接拿取docker配置
+kubectl create secret generic regcred  --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson
 
 kubectl get secret private-registry -o yaml
 ```
@@ -1202,3 +1212,14 @@ kubectl taint nodes [Node_Name] [key]=[value]:NoSchedule --overwrite
 ```yaml
 kubectl taint nodes [Node_Name] [key]-
 ```
+
+
+
+kubectl create secret docker-registry private-registry \
+--docker-username=[admin] \
+--docker-password=[Sg920322] \
+--docker-email=[5017098525@qq.com] \
+--docker-server=[106.15.106.83:8081]
+
+
+106.15.106.83:8082:test:20210927171653

@@ -1,5 +1,5 @@
 # react16版本
-
+[[toc]]
 ## 渲染
 - 主要解析要渲染的对象:`原生js  class  fnction` 
 - `React.createElement`用来创建虚拟DOM, 他主要对元素进行分类,分成`原生js  class  fnction`,最后包装成一个对象返回,如果儿子节点是多层的情况 还会进行递归处理。

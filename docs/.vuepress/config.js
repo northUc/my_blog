@@ -23,6 +23,11 @@ module.exports = {
     {
       text: "article",
       link: "/article/"
+    }
+    ,
+    {
+      text: "northui",
+      link: "/northui/"
     },
     {
       text: "GitHub",
@@ -31,7 +36,8 @@ module.exports = {
     {
       text: "about",
       link: "/about/"
-    }, ],
+    }
+    ],
     sidebar: {
       "/article/": [{
         title: "article",
@@ -142,6 +148,13 @@ module.exports = {
           "jest",
           "k8s",
           "cicd"
+        ]
+      }],
+      "/northui/": [{
+        title: "northui",
+        collapsable: false,
+        children: [
+          "base",
         ]
       }],
       "/interview/": [{

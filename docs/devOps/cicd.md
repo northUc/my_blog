@@ -154,7 +154,10 @@ cat /root/sonatype-work/nexus3/admin.password
 - 齿轮图标 => Realms => Docker Bearer Token Realm => 添加到右边的 Active =>保存
 - copy http://106.15.106.83:8081/repository/study/
 ### 登录制品库
+- 如果有这个报错 需要配置下面内容
+- `Failed to pull image "106.15.106.83:8082/frontend-app:20210927153747": rpc error: code = Unknown desc = Error response from daemon: Get "https://106.15.106.83:8082/v2/": http: server gave HTTP response to HTTPS client`
 - vi /etc/docker/daemon.json
+
 ```yaml
 {
   "insecure-registries" : [
@@ -162,12 +165,42 @@ cat /root/sonatype-work/nexus3/admin.password
   ],
   "registry-mirrors": ["https://fwvjnv59.mirror.aliyuncs.com"]
 }
+
+
+
+106.15.106.83:8082/test
+
+# master
+47.100.74.198:49154
+
+
+private-registry
+
+regcred
+
+
+
+# 重载所有修改过的配置文件
+sudo systemctl daemon-reload
+sudo systemctl restart docker
 ```
 ```yaml
 systemctl restart docker
 docker login 106.15.106.83:8082 //注意此处要和insecure-registries里的地址一致
 Username: admin
 Password: 123456
+```
+- 如果这个报错 `no basic auth credentials`
+```yaml
+# 配置私有的 建议这个
+kubectl create secret docker-registry private-registry \
+--docker-username=admin \
+--docker-password=Sg920322 \
+--docker-email=501798525@qq.com \
+--docker-server=106.15.106.83:8082
+
+# 或者直接拿取docker配置
+kubectl create secret generic regcred  --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson
 ```
 ## 利用 Jenkins推送镜像到制品库
 ### 利用凭据给 Shell 注入镜像库用户名密码
@@ -182,3 +215,5 @@ docker build -t 106.15.106.83:8082/test .
 docker login -u $DOCKER_LOGIN_USERNAME -p $DOCKER_LOGIN_PASSWORD 106.15.106.83:8082
 docker push 106.15.106.83:8082/test
 ```
+
+
