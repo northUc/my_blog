@@ -1,6 +1,6 @@
 # react source
 
-[mock react](https://github.com/xiaoqi7777/react.git) master分支
+[master react](https://github.com/xiaoqi7777/react.git) master分支
 
 [[toc]]
 ##  babel 编译 jsx

@@ -18,9 +18,3 @@ git commit -m 'deploy'
 # 如果发布到 https://<USERNAME>.github.io
 git push -f https://github.com/xiaoqi7777/xiaoqi7777.github.io.git master
 
-
-24000 + 46000 = 70000
-
-31200 + 38000 = 
-
-2187+3553+1000+300+400+2000
