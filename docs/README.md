@@ -9,5 +9,4 @@
 
 ## 交流
 
-想要交流的朋友可以加QQ:xxxxxxxxx 12333
-
+[在线阅读](https://github.com/northUc)

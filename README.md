@@ -6,7 +6,7 @@
 
 ## 阅读
 
-[在线阅读](https://xiaoqi7777.github.io/)
+[在线阅读](https://northuc.github.io/)
 
 ## vuepress
 
