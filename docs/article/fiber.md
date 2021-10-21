@@ -150,7 +150,7 @@ console.log(queue.forceUpdate()) ;
 console.log(queue.baseState)
 ```
 
-## fiber1
+## fiber
 ### Fiber 之前的Reconcilation(协调)
 - React 会递归对比VirtualDOM树,找出需要变动的节点,然后同步更新他们,这个过程叫`Reconcilation`
 - 在协调期间,React 会一直占用着浏览器的资源，一则会导致用户触发的事件得不到响应，二会导致卡顿
@@ -277,16 +277,24 @@ ReactDOM.render(
 - c、**effect规则**
   - 自己所有的子节点完成后完成自己
 
-<img :src="$withBase('/img/fibereffectlistwithchild.jpg')" >
+### commit 阶段
+<img :src="$withBase('/img/fiberCommit.jpg')" >
+
+- 组装和遍历是一个反向操作, 有三种情况,第一个有副作用的儿子节点`firstEffect`, 最后一个有副作用的节点`lastEffect`, 有副作用节点之间关联起来`nextEffect`。
+我们分析上面图,遍历到最底部是C1最先完成,此时B1的`firstEffect`和`lastEffect` 继承了C1的,但是C1的都为null, 那么C1 把自己往父节点挂上去, 那么`firstEffect`和`lastEffect` 变成了C1。当遍历C2的时候
+B1的`lastEffect.nextEffect` 指向了C2。C1和C2遍历完成,便利B这一层,当遇到B1的时候 此时A1的`firstEffect`和`lastEffect` 同B1一样继承他了,为C1 C2,继承之后,B1把自己往父节点上挂,B1这个节点中A1(C1=>C2=>B1)。同理运行B2的时候 A1.`lastEffect.nextEffect`指向了B2,就这样无限循环下去
 
 ### 渲染 按照上面的element进行初次渲染,来看下利用这三条规则进行渲染
+
+<img :src="$withBase('/img/fibereffectlistwithchild.jpg')" >
+
 - 遍历节点
   - 对于每个有变化的节点,都会创建虚拟DOM生成，同时创建fiber,生成fiber树，此时的fiber结构有个属性保存着下一个兄弟节点(若有)
   - 深度递归遍历，只要有儿子就一直递归下去,没有儿子的时候会让自己完成,在去查看是否有下一个兄弟节点,若没有即返回父节点
   - 在完成的时候 firstEffect指向第一个完成的节点, lastEffect始终指向最后一个变化节点,每个完成的节点.nextEffect指向下一个完成的节点,这样所有发生副作用的fiber都会被收集到链表中
-  - 第一个`1完成`的元素即是(A1 text) 在遍历的时候 他是首个没有child的元素,接着找他的兄弟元素(B1 div),同样(B1 text)是第二个的个`2完成`,接着找兄弟节点(C1 div),此时的(C1 text)就是第三个`3完成`的节点
-  - (C1 text)完成后,没有儿子节点也没有兄弟节点,即返回父节点(C1 div)`4完成`。他会去找叔叔的(C2 div),此时(C2 text)`5完成`,同样(C2 text)没有兄弟和儿子节点,返回(C2 div)即父节点`6完成`
-  - (B1 div)里面的儿子都完成自己就`7完成`了,他会去找自己的兄弟节点(B2 div),那么(B2 text)`8完成`,接着就是(B2 div)`9完成`,最后就是(A1 div)`10完成`
+  - 第一个`1完成`的元素即是(A1 text文本) 在遍历的时候 他是首个没有child的元素,接着找他的兄弟元素(B1 div标签),同样(B1 text文本)是第二个的个`2完成`,接着找兄弟节点(C1 div标签),此时的(C1 text文本)就是第三个`3完成`的节点
+  - (C1 text文本)完成后,没有儿子节点也没有兄弟节点,即返回父节点(C1 div标签)`4完成`。他会去找叔叔的(C2 div),此时(C2 text文本)`5完成`,同样(C2 text文本)没有兄弟和儿子节点,返回(C2 div标签)即父节点`6完成`
+  - (B1 div标签)里面的儿子都完成自己就`7完成`了,他会去找自己的兄弟节点(B2 div标签),那么(B2 text文本)`8完成`,接着就是(B2 div标签)`9完成`,最后就是(A1 div标签)`10完成`
   - 此流程对应了上图中的(A1 text=> A1)的过程,下面有打印的过程
 - 渲染
 <img :src="$withBase('/img/fibereffectlistabc.png')" >

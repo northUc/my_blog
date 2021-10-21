@@ -289,6 +289,3 @@ let element = {
 ```
 
 ## fiber组装
-- 组装和遍历是一个反向操作, 有三种情况,第一个有副作用的儿子节点`firstEffect`, 最后一个有副作用的节点`lastEffect`, 有副作用节点之间关联起来`nextEffect`。
-我们分析上面图,遍历到最底部是C1最先完成,此时B1的`firstEffect`和`lastEffect` 继承了C1的,但是C1的都为null, 那么C1 把自己往父节点挂上去, 那么`firstEffect`和`lastEffect` 变成了C1。当遍历C2的时候
-B1的`lastEffect.nextEffect` 指向了C2。C1和C2遍历完成,便利B这一层,当遇到B1的时候 此时A1的`firstEffect`和`lastEffect` 同B1一样继承他了,为C1 C2,继承之后,B1把自己往父节点上挂,B1这个节点中A1(C1=>C2=>B1)。同理运行B2的时候 A1.`lastEffect.nextEffect`指向了B2,就这样无限循环下去
