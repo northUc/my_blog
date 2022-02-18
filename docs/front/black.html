@@ -4,8 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <style>
+    div{
+      width: 100px;
+      background: #000;
+      height: 2000px;
+    }
+  </style>
 </head>
 <body>
-  <input type="text">
+  <div>
+    123
+  </div>
+  <span>点击</span>
+  <script>
+    let span  =  document.querySelector('span')
+    span.addEventListener('click',()=>{
+      document.documentElement.scrollTop = 0+'px';
+      // document.body.scrollTop = 0
+      // window.scrollTo(0,0)
+    })
+  </script>
 </body>
 </html>

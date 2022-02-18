@@ -480,6 +480,69 @@ console.log(rs) //返回src目录下所有的js和gif文件 不管多少层目�
   - cheap-module-source-map 定位到行 显示的源文件的代码
 - inline 
   - 不会生成单独的source-map文件 将.map作为DataURL(base64)嵌入 到打包文件内
+## sourcemap
+```js
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const FileManagerPlugin = require('filemanager-webpack-plugin');
+const webpack = require('webpack');
+module.exports = {
+  mode:'production',// development
+  entry: './src/index.js',
+//   devtool:'source-map',
+  devtool:'source-map',// eval source-map cheap module inline hidden-source-map
+  module: {
+    rules: [
+        { test: /\.css$/, use: ['style-loader','css-loader']},
+        {
+            test: /\.js?$/,
+            use: {
+              loader: 'babel-loader',
+              options: {
+                presets: [["@babel/preset-env"], '@babel/preset-react'],
+                plugins: [
+                  ['@babel/plugin-proposal-decorators', { legacy: true }],
+                  ['@babel/plugin-proposal-class-properties', { loose: true }],
+                ],
+              },
+            },
+            exclude:/node_modules/
+        }
+    ]
+  },
+  devServer: {
+    static: path.resolve(__dirname, 'public'),
+    port: 8081,
+    open: true
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'main.js'
+  },
+  plugins: [
+        new HtmlWebpackPlugin({template: './src/index.html'}),
+        // new webpack.SourceMapDevToolPlugin({
+        //   append: '//# sourceMappingURL=http://127.0.0.1:8087/[url]',
+        //   filename: '[file].map',
+        // }),
+        // new FileManagerPlugin({
+        //   events: {
+        //     onEnd:{
+        //       copy: [{
+        //         source: './dist/*.map',
+        //         destination: '/Users/edz/Desktop/sourcemap/maps',
+        //       }],
+        //       delete: ['./dist/*.map'],
+        //       archive: [{ 
+        //         source: './dist',
+        //         destination: './dist/dist.zip',
+        //       }]
+        //     }
+        //   }
+        // })
+    ]
+};
+```
 ### mode
 - production 默认会压缩js css不会压缩 要开启 optimization选项优化
 - development 不会压缩

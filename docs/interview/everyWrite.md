@@ -236,6 +236,18 @@ Function.prototype.mybind = function(context, ...args) {
     fBound.prototype = new fn()
     return fBound
 }
+// 另一种
+Function.prototype.mybind = function(context,...args){
+    context = Object(context) ? context : window
+    context.fn = this
+
+    function f(...arrs){
+        let _r = [...args,...arrs]
+        return eval(`context.fn(${_r})`) 
+    }
+
+    return f
+}
 
 function fn(a, b, c, d) {
     console.log(a, b, c, d)
@@ -913,6 +925,70 @@ landLord.lend(agent,40,600)
 // __webpack_require__.e 方法就是实现了jsonp加载数据,创建script标签 加载数据分隔数据的js文件 获取数据,他对象数据添加到modules对象上,通过__webpack_require__.t 去解析数据到页面中
 ```
 
+## sourcemap
+```js
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const FileManagerPlugin = require('filemanager-webpack-plugin');
+const webpack = require('webpack');
+module.exports = {
+  mode:'production',// development
+  entry: './src/index.js',
+//   devtool:'source-map',
+  devtool:'source-map',// eval source-map cheap module inline hidden-source-map
+  module: {
+    rules: [
+        { test: /\.css$/, use: ['style-loader','css-loader']},
+        {
+            test: /\.js?$/,
+            use: {
+              loader: 'babel-loader',
+              options: {
+                presets: [["@babel/preset-env"], '@babel/preset-react'],
+                plugins: [
+                  ['@babel/plugin-proposal-decorators', { legacy: true }],
+                  ['@babel/plugin-proposal-class-properties', { loose: true }],
+                ],
+              },
+            },
+            exclude:/node_modules/
+        }
+    ]
+  },
+  devServer: {
+    static: path.resolve(__dirname, 'public'),
+    port: 8081,
+    open: true
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'main.js'
+  },
+  plugins: [
+        new HtmlWebpackPlugin({template: './src/index.html'}),
+        // new webpack.SourceMapDevToolPlugin({
+        //   append: '//# sourceMappingURL=http://127.0.0.1:8087/[url]',
+        //   filename: '[file].map',
+        // }),
+        // new FileManagerPlugin({
+        //   events: {
+        //     onEnd:{
+        //       copy: [{
+        //         source: './dist/*.map',
+        //         destination: '/Users/edz/Desktop/sourcemap/maps',
+        //       }],
+        //       delete: ['./dist/*.map'],
+        //       archive: [{ 
+        //         source: './dist',
+        //         destination: './dist/dist.zip',
+        //       }]
+        //     }
+        //   }
+        // })
+    ]
+};
+```
+
 ## hot 更新
 ```js
 // server 端
@@ -924,7 +1000,6 @@ landLord.lend(agent,40,600)
 //  2、遍历c对象,jsonp请求变化的数据,url是 chunkId+用更新前的上一次hash(hotCurrentHash)+'.hot.update.js',返回的是 webpackHotUpdate('chunkId',{moduleId:value})
 //  3、webpackHotUpdate 作用 遍历jsonp过来的的数据 1、通过__webpack_require__ 加载有变化的module 2、通过moduleId 获取到parentModule 在里面取到hot里之前缓存的函数执行，加载最新的数据 
 ```
-
 ## loader
 ```js
 // 1、给 loaderContext 上下文定义4个变量,request当前所有的loader,remindingRequest剩下的loader,previousRequest之前的loader,data用来共享数据
@@ -932,6 +1007,13 @@ landLord.lend(agent,40,600)
 // 3、先处理 iteratePitchingLoaders 当其中一个pitch函数没有返回值的时候 直接执行下一个 若有返回值的时候 执行他并且传入 remindingRequest,previousRequest,data 为参数
 // 4、pitch执行完成后处理 normal.raw 当为true的时候 就变成二进制,否则不处理
 // 5、处理 iterateNormalLoaders 一次执行 当执行完最后一个就 退出去 执行回调函数
+```
+## treeShaking
+```js
+// 他是 rollup 的核心功能 大致原理
+// 1、依靠es6模块，利用ast 对原代码进行解析
+// 2、搜集导入变量和导出的模块,通过遍历源代码构建作用域,搜集模块依赖哪些外部变量
+// 3、扩展所有语句,对于依赖了外部变量的模块进行处理,将通过之前的导入和导出保存的数据,在当前原代码前拷贝要倒入的代码,在重新组装成新的代码块
 ```
 
 ## express

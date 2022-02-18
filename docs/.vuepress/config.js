@@ -98,6 +98,12 @@ module.exports = {
         children:[
           "binary",
         ]
+      },{
+        title:'http',
+        collapsable:false,
+        children:[
+          "http",
+        ]
       }
     ],
       "/front/": [{

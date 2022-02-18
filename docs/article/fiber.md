@@ -235,59 +235,24 @@ function beginWork(fiber){
 nextUnitOfWork = A1
 requestIdleCallback(workLoop,{timeout:1000})
 ```
-## Fiber执行阶段
-- 每次渲染有两个阶段:Reconciliation(协调/渲染)和Commit(提交阶段)
-- 协调阶段:可以认为是Diff阶段,这个阶段可以被中断,这个阶段会找出所有节点变更,例如节点新增、删除、属性变更等等,这都称为react的(Effect)
-- 提交阶段:将上一个阶段计算出来的需要处理的副作用一次行执行了,这个解读那必须是同步执行,不能被打断
-
-## 初次渲染
-### 1、scheduleRoot
-- 以下所有的内容都是根据这个模板
-- element通过babel编译成jsx语法,传给render方法,render会将element包装成一个fiber结构,进行调度根节点(scheduleRoot)
-```js
-import React from './react';
-import ReactDOM from './react-dom';
-let style = { border:'3px solid red',margin:'5px'}
-let element = (
-  <div id='A1' style={style}>
-    A1
-    <div id='B1' style={style}>
-      B1
-      <div id='C1' style={style}>C1</div>
-      <div id='C2' style={style}>C2</div>
-    </div>
-    <div id='B2' style={style}>B2</div>
-  </div>
-)
-
-ReactDOM.render(
-  element,
-  document.getElementById('root')
-)
-```
-### 2、schedule(调度整体流程)
-- 根据下面3条规则能将react串联起来
-- a、**遍历的规则**
-  - 先儿子,后弟弟,在叔叔，
-
+## react 渲染流程
+### 1、调度(scheduleRoot)
 <img :src="$withBase('/img/fiberconstructortranverse.jpg')" >
 
-- b、**完成链规则**
-  - 自己所有的子节点完成后完成自己
-- c、**effect规则**
-  - 自己所有的子节点完成后完成自己
-
-### commit 阶段
-<img :src="$withBase('/img/fiberCommit.jpg')" >
-
-- 组装和遍历是一个反向操作, 有三种情况,第一个有副作用的儿子节点`firstEffect`, 最后一个有副作用的节点`lastEffect`, 有副作用节点之间关联起来`nextEffect`。
-我们分析上面图,遍历到最底部是C1最先完成,此时B1的`firstEffect`和`lastEffect` 继承了C1的,但是C1的都为null, 那么C1 把自己往父节点挂上去, 那么`firstEffect`和`lastEffect` 变成了C1。当遍历C2的时候
-B1的`lastEffect.nextEffect` 指向了C2。C1和C2遍历完成,便利B这一层,当遇到B1的时候 此时A1的`firstEffect`和`lastEffect` 同B1一样继承他了,为C1 C2,继承之后,B1把自己往父节点上挂,B1这个节点中A1(C1=>C2=>B1)。同理运行B2的时候 A1.`lastEffect.nextEffect`指向了B2,就这样无限循环下去
-
-### 渲染 按照上面的element进行初次渲染,来看下利用这三条规则进行渲染
-
+  -  element通过babel编译成jsx语法,传给render方法,render会将element包装成一个fiber结构,进行调度根节点(scheduleRoot)
+  -  根据下面3条规则能将react串联起来
+  - a、遍历的规则
+    - 先儿子,后弟弟,在叔叔，
+  - b、完成链规则
+    - 自己所有的子节点完成后完成自己
+  - c、effect规则
+    - 自己所有的子节点完成后完成自己
+### 2、调和(Reconcilation)
 <img :src="$withBase('/img/fibereffectlistwithchild.jpg')" >
 
+  - 调和 把虚拟DOM转成Fiber节点的过程,以及每个fiber之间的关联,收集 effectList(需要更新的Fiber)
+  - 这个阶段是异步 如果没有完成 下一个时间节点 重新收集 effectList
+  - 只有调和是异步的
 - 遍历节点
   - 对于每个有变化的节点,都会创建虚拟DOM生成，同时创建fiber,生成fiber树，此时的fiber结构有个属性保存着下一个兄弟节点(若有)
   - 深度递归遍历，只要有儿子就一直递归下去,没有儿子的时候会让自己完成,在去查看是否有下一个兄弟节点,若没有即返回父节点
@@ -506,13 +471,88 @@ function commitWork(currentFiber){
 // react告诉浏览器 我现在有任务请你在闲的时候
 requestIdleCallback(workLoop,{timeout:500})
 ```
-## 更新
-- 在第一次更新之前 commitRoot 的时候 workInProgressRoot(渲染时候的fiberRoot) 会保存在currenRoot(当前页面显示的fiberRoot)中,在更新的时候  workInProgressRoot指向更新时的fiberRoot,fiberRoot属性(alternate)指向currentRoot(老的),他会进入到reconcileChildren(创建fiber),在这里他会通过fiberRoot.alternate获取来的老根节点,通过新老fiberRoot进行对比,当创建的fiber,有一个属性alternate指向老节点的fiber 
+### 3、提交(commit)
+<img :src="$withBase('/img/fiberCommit.jpg')" >
 
- fiber都 那么创建newFiber对象的时候会多一个alternate属性,他指向oldFiber,新fiber递归创建,他里面的alternate属性都指向同级的oldFiber,每一个新fiber都有一个指针指向oldFiber,等待所有的effect收集完成,用currentFiber.alternate.props和currentFiber.props进行DOM更新
-- 在第二次更新的时候,
+  - commit阶段处理 effectList(指调和阶段需要更新的DOM),此处的流程C1开始直接到A1结束,与调和阶段是反的,最后挂到root上
+  - 类比Git分支功能,从旧树中fork出来一份，在新分支进行添加、删除和更新操作，经过测试后进行提交
+
+
+## 更新
+- 这里有几个概念
+  - `Rootfiber`每次开始更新渲染的 
+  - `workInProgressRoot`正在渲染的根fiber 
+  - `currentRoot`当前渲染的根fiber , 也就是说`currentRoot`就是上一个`workInProgressRoot`(每次渲染完成后,workInProgressRoot 就把自己赋值给 currentRoot,然后workInProgressRoot 对象有赋值新的fiber)
+  - 这里 `workInProgressRoot` 里面每个fiber节点都有一个指针(alternate)指向老的(currentFiber)fiber
+- 在第一次更新之前 commitRoot 的时候 workInProgressRoot(渲染时候的fiberRoot) 会保存在currenRoot(当前页面显示的fiberRoot)中,更新的时候  workInProgressRoot指向更新时的fiberRoot,fiberRoot属性(alternate)指向currentRoot(老的),他会进入到reconcileChildren(创建fiber),在这里他会通过fiberRoot.alternate获取来的老根节点,通过新老fiberRoot进行对比,当创建的fiber,有一个属性alternate指向老节点的fiber 
+
+### 新老fiber 更新图
 <img :src="$withBase('/img/updatecomponent.jpg')" >
 
 ### 双缓存机制
-
+- `currentRoot`当前渲染的根fiber , 也就是说`currentRoot`就是上一个`workInProgressRoot`(每次渲染完成后,workInProgressRoot 就把自己赋值给 currentRoot,然后workInProgressRoot 对象有赋值新的fiber)
+- 利用`workInProgressRoot`和`currentRoot` 两个对象,一个保存上一个fiebr,一个保存当前的fiber,不管
 <img :src="$withBase('/img/alternate.jpg')" >
+
+## DOM-DIFF
+- 在React17+中DOM-DIFF就是根据老的fiber树和最新的JSX对比生成新的fiber树的过程
+### React优化原则
+- 只对同级节点进行对比，如果DOM节点跨层级移动，则React不会复用
+- 不同类型的元素会产出不同的结构 ，会销毁老结构，创建新结构
+- 可以通过key标识移动的元素
+### 单节点
+- 如果新的子节点只有一个元素的情况,key和type不同,在调和阶段，需要把老节点标记为删除,生产新的fiber节点 标记为插入
+- 在调和阶段，需要把老节点标记为删除
+
+### 多节点
+- 如果新的节点有多个节点的话,多节点的时候会经历二轮遍历
+- 第一轮遍历主要是处理节点的更新,更新包括属性和类型的更新
+```ts
+一一对比，都可复用，只需更新
+    <ul>
+    <li key="A">A</li>
+    <li key="B">B</li>
+    <li key="C">C</li>
+    <li key="D">D</li>
+    </ul>
+    /*************/
+    <ul>
+    <li key="A">A-new</li>
+    <li key="B">B-new</li>
+    <li key="C">C-new</li>
+    <li key="D">D-new</li>
+    </ul>
+
+一一对比，key相同，type不同，删除老的，添新的
+    <ul>
+    <li key="A">A</li>
+    <li key="B">B</li>
+    <li key="C">C</li>
+    <li key="D">D</li>
+    </ul>
+    /*************/
+    <ul>
+    <div key="A">A-new</div>
+    <li key="B">B-new</li>
+    <li key="C">C-new</li>
+    <li key="D">D-new</li>
+    </ul>
+    
+一一key不同退出第一轮循环
+    <ul>
+    <li key="A">A</li>
+    <li key="B">B</li>
+    <li key="C">C</li>
+    <li key="D">D</li>
+    </ul>
+    /*************/
+    <ul>
+    <li key="A">A-new</li>
+    <li key="C">C-new</li>
+    <li key="D">D-new</li>
+    <li key="B">B-new</li>
+    </ul>
+```
+- 移动(这里和16版本的diff 是一样)
+
+<img :src="$withBase('/img/domdiff.jpg')" >

@@ -105,7 +105,6 @@ log_format  zfpx  '$arg_name $http_referer sent_http_date"';
 access_log  /var/log/nginx/access.log  main;   
 ```
 ## nginx 命令
-
 - rpm -ql nginx  查看所有目录
 - 文件配置目录
   - /etc/nginx/nginx.conf

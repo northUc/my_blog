@@ -371,6 +371,67 @@ class MyPlugin{
 }
 module.exports = MyPlugin;
 ```
+### asset-plugin.js
+```js
+class AssetPlugin{
+    constructor(options){
+        this.options = options;
+    }
+    apply(compiler){
+        //监听compilation事件
+        //https://webpack.docschina.org/api/compiler-hooks/#compilation
+        compiler.hooks.compilation.tap('AssetPlugin',(compilation)=>{
+            //https://webpack.docschina.org/api/compilation-hooks/#chunkasset
+            //一个 chunk 中的一个 asset 被添加到 compilation 时调用
+            //一个代码块会生成一个文件(asset) 文件肯定有文件名 filename
+            compilation.hooks.chunkAsset.tap('AssetPlugin',(chunk,filename)=>{
+                console.log(chunk.name||chunk.id,filename);
+            });
+        });
+    }
+}
+module.exports = AssetPlugin;
+```
+### zip
+```js
+const JSZip = require('jszip');
+const { RawSource } = require('webpack-sources');
+class ArchivePlugin {
+    constructor(options) {
+        this.options = options;
+    }
+    apply(compiler) {
+        //emit当webpack确定好输出的内容后会触发一次emit钩子，这里你修改输出文件列表最后的机会，因为这个钩子执行完后就开始把编译后的结果输出到文件系统中去
+        //const processAssetsHook = new AsyncSeriesHook(["assets"]);
+        compiler.hooks.emit.tap('ArchivePlugin', (compilation) => {
+            compilation.hooks.processAssets.tapPromise('ArchivePlugin', (assets) => {
+                //assets 本次编译出来的资源文件
+                //let assets = compilation.assets;
+                var zip = new JSZip();
+                for (let filename in assets) {
+                    let cacheSource = assets[filename];
+                    //获取此文件对应的源代码
+                    const source = cacheSource.source();
+                    //向压缩包里添加文件，文件名叫filename,文件内容叫source
+                    zip.file(filename, source);
+                }
+                return zip.generateAsync({ type: 'nodebuffer' }).then(content => {
+                    //向输出的文件列表中添加一个新的文件 key
+                    /*  assets['archive_' + Date.now() + '.zip'] = {
+                         source() {
+                             return content;
+                         }
+                     }; */
+                    //assets的值必须是一个对象，对象需要有一个source方法，返回源代码
+                    assets['archive_' + Date.now() + '.zip'] = new RawSource(content);
+                });
+            });
+        });
+    }
+}
+module.exports = ArchivePlugin;
+```
+
 ### EmitPlugin
 ```js
 // 我们想知道如果获取到 compilation 对象
@@ -1146,3 +1207,91 @@ webpackHotUpdate("index",{
 ```
 
 遍历chunkIds(有数据的情况下)通过jsonp的方式去请求变化的chunk,`chunkId+hotCurrentHash(当前编译前的hash)+.hot-update.js`获取jsonp数据
+
+## sourcemap
+### devtool 打包调试
+- sourcemap 性能最差,效果最好,会生成一个source-map文件 能定位到行和列 
+  - 不能缓存source-map文件,每次编译都会生成新的代码块文件,在生成环境下会影响性能
+  - source-map生成配置文件 mappings里面的数据就是一个代码映射   
+- eval 用最好的性能,但是只能映射到编译后的代码 主要是把编译前和后的代码关联起来
+  - 生成代码 每个模块都被eval执行 进行缓存，并且存在 sourceURL 映射到对应的源码路径(dev启动服务),带eval的构建模式能cache SourceMap
+  - 1、不需要生成单独的source-map文件
+  - 2、eval代码包裹起来代码可以缓存
+- cheap(廉价的)
+  - 不包含列表信息
+  - cheap-source-map 定位到行 但是是编译后的文件(babel 处理后的，不包含loader等)
+- module
+  - 包含loader的source-map(比如jsx to js,babel的source-map,源文件显示需要babel等loader处理,打包后的都是不需要loader处理的),否则无法定义源文件
+  - cheap-module-source-map 定位到行 显示的源文件的代码
+- inline 
+  - 不会生成单独的source-map文件 将.map作为DataURL(base64)嵌入 到打包文件内
+```js
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const FileManagerPlugin = require('filemanager-webpack-plugin');
+const webpack = require('webpack');
+module.exports = {
+  mode:'production',// development
+  entry: './src/index.js',
+//   devtool:'source-map',
+  devtool:'source-map',// eval source-map cheap module inline hidden-source-map
+  module: {
+    rules: [
+        { test: /\.css$/, use: ['style-loader','css-loader']},
+        {
+            test: /\.js?$/,
+            use: {
+              loader: 'babel-loader',
+              options: {
+                presets: [["@babel/preset-env"], '@babel/preset-react'],
+                plugins: [
+                  ['@babel/plugin-proposal-decorators', { legacy: true }],
+                  ['@babel/plugin-proposal-class-properties', { loose: true }],
+                ],
+              },
+            },
+            exclude:/node_modules/
+        }
+    ]
+  },
+  devServer: {
+    static: path.resolve(__dirname, 'public'),
+    port: 8081,
+    open: true
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'main.js'
+  },
+  plugins: [
+        new HtmlWebpackPlugin({template: './src/index.html'}),
+        // new webpack.SourceMapDevToolPlugin({
+        //   append: '//# sourceMappingURL=http://127.0.0.1:8087/[url]',
+        //   filename: '[file].map',
+        // }),
+        // new FileManagerPlugin({
+        //   events: {
+        //     onEnd:{
+        //       copy: [{
+        //         source: './dist/*.map',
+        //         destination: '/Users/edz/Desktop/sourcemap/maps',
+        //       }],
+        //       delete: ['./dist/*.map'],
+        //       archive: [{ 
+        //         source: './dist',
+        //         destination: './dist/dist.zip',
+        //       }]
+        //     }
+        //   }
+        // })
+    ]
+};
+```
+
+## treeShaking
+```js
+// 他是 rollup 的核心功能 大致原理
+// 1、依靠es6模块，利用ast 对原代码进行解析
+// 2、搜集导入变量和导出的模块,通过遍历源代码构建作用域,搜集模块依赖哪些外部变量
+// 3、扩展所有语句,对于依赖了外部变量的模块进行处理,将通过之前的导入和导出保存的数据,在当前原代码前拷贝要倒入的代码,在重新组装成新的代码块
+```

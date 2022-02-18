@@ -49,8 +49,8 @@ systemctl restart docker
 | images | 查看全部镜像 | docker image ls|
 | search | 查找镜像 | docker search [imageName]|
 | pull | 拉取镜像 | docker image pull [imageName]|
-| rmi | 删除镜像 | docker image inspect [imageName]|
-| rmi | 镜像信息 | docker image rmi [imageName]|
+| rmi | 删除镜像 | docker image rmi [imageName]|
+| inspect | 镜像信息 | docker image rmi [imageName]|
 | tag | 镜像取名字(会多一条记录) | docker image tag [imageName] [myName]:latest(版本)|
 
 
@@ -81,9 +81,9 @@ systemctl restart docker
 ## 制作镜像 && 使用
 ```js
 制作个性化镜像
-    docker commit -m"hello" -a "songge" [containerId] songge/hello:latest
+    docker commit -m"hello" -a "sg" [containerId] sg/hello:latest
     docker images
-    docker run zhangrenyang/hello /bin/bash
+    docker run sg/hello /bin/bash
 ```
 ###  制作Dockerfile
 > docker inspect centos
@@ -94,7 +94,6 @@ systemctl restart docker
   - .git
   - node_modules
 :::tip 编写Dockerfile
-
 
 |命令	  |    含义  | 案例 |
 | ---- | :----|---|
@@ -319,6 +318,7 @@ apt install curl
 ```
 
 - 启动
+
 ```js
 docker-compose up 启动所有的服务
 docker-compose -d 后台启动所有的服务
@@ -564,4 +564,14 @@ docker push 8.142.41.191:8082/cicd-backend:$time
 ### 拉取私有镜像
 ```yaml
 docker pull 8.144.177.239:8082/test4
+```
+
+## 邮箱配置
+```yaml
+mail.host: 'smtp.qq.com'
+mail.port: 465
+mail.username: '501798525@qq.com'
+mail.password: 'alukbihtftrpbjcb'
+mail.use-tls: false
+mail.use-ssl: True
 ```

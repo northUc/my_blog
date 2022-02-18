@@ -259,16 +259,14 @@ console.log( fn('12321'))
 :::
 ```js
 // 利用对象 存储
-function fn(arr1){
-  let arr = []
-  let hasArr = {}
-  for(let k=0;k<arr1.length;k++){
-    if(!hasArr[arr1[k]]){
-      hasArr[arr1[k]] = true ;
-      arr.push(arr1[k])
+function fn(arr){
+    let currentArr = []
+    for(let i in arr){
+        if(!currentArr.includes(arr[i])){
+            currentArr.push(arr[i])
+        }
     }
-  }
-  return arr
+    return currentArr
 }
 let a = fn([1,2,3,1,2,3,2])
 
@@ -285,6 +283,7 @@ arr = [...set]
 输出 ： a。
 :::
 ```js
+// 1
 function fn (arr){
   if(arr.length == 1){
     return arr
@@ -309,6 +308,16 @@ function fn (arr){
 }
 let a = fn([1,2,3,4,5,1,1,1,2,3,1])
 console.log(a)
+
+// 2   正则 \1 代表第一个()里面的内容
+let r = 'afffjgghdfraa33aaasdennnas' 
+function fn(arr){
+    const _sortArr = arr.split('').sort().join('')
+    const _arr = _sortArr.match(/(\w)\1+/g)
+    _arr.sort((a,b)=> a.length - b.length)
+    return _arr
+}
+console.log(fn(r))
 ```
 - 求数组第3个最大值
   - 可以用冒泡排序 在取前三

@@ -1201,3 +1201,60 @@ hr {
 - src 是source的缩写,是页面必不可少缺少的一部分,是引入 常用的有 img script iframe
   - src 加载js的时候,会暂停浏览器渲染,知道js加载完成且执行完成 才开始渲染
 - href 表示超文本(引用) 常用的有link,a
+
+```yaml
+ freightTemplateRuleWeight: freightTemplateRuleWeightFn(),
+ freightTemplateRuleWeightList: freightTemplateRuleWeightListFn(),
+```
+
+```yaml
+{
+  "areaCodeList": [],
+  "freightTemplateRulePrices": {
+    "fixedFreight": 0,
+    "freight": 0,
+    "isDefault": 0,
+    "isFixed": 0,
+    "orderPrice": 0
+  },
+  "freightTemplateRulePricesList": [
+    {
+      "areaCodeList": [],
+      "key":0
+      freightDatas:{
+        "fixedFreight": 0,
+        "freight": 0,
+        "isDefault": 0,
+        "isFixed": 0,
+        "orderPrice": 0
+      }
+    }
+  ],
+  "freightTemplateRuleWeight": {
+    "firstFreight": 0,
+    "firstWeight": 0,
+    "followFreight": 0,
+    "followWeight": 0,
+    "isDefault": 0
+  },
+  "freightTemplateRuleWeightList": [
+    {
+      "areaCodeList": [],
+      "key":0,
+      freightDatas:{
+        "firstFreight": 0,
+        "firstWeight": 0,
+        "followFreight": 0,
+        "followWeight": 0,
+        "isDefault": 0
+      }
+    }
+  ],
+  "isParcel": 0,
+  "remark": "",
+  "ruleType": 0,
+  "status": 0,
+  "supplierId": 0,
+  "templateName": ""
+}
+```

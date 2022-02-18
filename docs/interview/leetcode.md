@@ -145,14 +145,14 @@ export default (str) => {
   let comb = (arr) => {
     let tmp = []
     for (let il = 0; il < arr[0].length; il++) {
-      for (let jl = 1; jl < arr[1].length; jl++) {
+      for (let jl = 0; jl < arr[1].length; jl++) {
         tmp.push(`${arr[0][il]}${arr[1][jl]}`)
       }
     }
     // 核心的逻辑 将最短的2个组合，配合第三个重新组合
     arr.splice(0, 2, tmp)
     if (arr.length > 1) {
-      comb(arr)
+      return comb(arr)
     } else {
       return tmp
     }
@@ -210,7 +210,7 @@ export default (str) => {
   => 10 = 2*5 + 0
   
   16,12 可以写成(16,12位子调过来也一样,在取余的时候16,12位子还是会换过来)
-     16 = 2*4+4
+     12 = 2*4+4
   => 16 = 2*(1*4+0)+4
 
   64,24 可以写成

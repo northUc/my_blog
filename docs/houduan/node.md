@@ -225,6 +225,7 @@ vm.runInThisContext(fn); //2
   **流:** 并不关系整体文件大小
  
   **分类:** 可读、可写、转换、双工流
+  - 转换流和双工流 相同点:都是可读可写, 不同点:转换流 读写的流是相同的,双工流读写不一样
 ```javascript
   //读流
   let rs = fs.createReadStream('./a.md',options)
@@ -265,6 +266,23 @@ vm.runInThisContext(fn); //2
   })
   //边读边写
   rs.pipe(ws)
+  // 双工流
+  const {Duplex} = require('stream');
+  const inoutStream = new Duplex({
+      write(chunk, encoding, callback) {
+          console.log(chunk.toString());
+          callback();
+      },
+      read(size) {
+          this.push((++this.index)+'');
+          if (this.index > 3) {
+              this.push(null);
+          }
+      }
+  });
+
+  inoutStream.index = 0;
+  process.stdin.pipe(inoutStream).pipe(process.stdout);
 ```
 ## http
  http版本1.1
