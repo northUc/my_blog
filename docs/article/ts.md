@@ -243,7 +243,24 @@ exec(parentToChild);
     }
     return rs
   }
-  let r1 = cr<string(3,'x')
+  let r1 = cr<string>(3,'x')
+```
+## in 运算符可以被用于参数类型的判断
+```ts
+interface Bird {
+    swing: number;
+}
+
+interface Dog {
+    leg: number;
+}
+
+function getNumber(x: Bird | Dog) {
+    if ("swing" in x) {
+      return x.swing;
+    }
+    return x.leg;
+}
 ```
 
 ## interface&&type
@@ -848,4 +865,66 @@ store.ext = 'hello';
      "declaration": true, /* Generates corresponding '.d.ts' file.*/
   }
 }
+```
+## omit 从一个对象中剔除一些属性
+```ts
+
+type Props = { name: string; age: number; visible: boolean };
+
+type Omit<T, k extends keyof T> = Pick<T, Exclude<keyof T, k>>
+// Expect: { name: string; visible: boolean; }
+type Props1 = Omit<Props, 'age'>;
+```
+## Diff 比较两个对象 找出不同
+
+```ts
+export type Diff<T extends object, U extends object> = Pick<
+  T,
+  Exclude<keyof T, keyof U>
+>;
+
+type Props = { name: string; age: number; visible: boolean };
+type DefaultProps = { age: number };
+
+// Expect: { name: string; visible: boolean; }
+type DiffProps = Diff<Props, DefaultProps>;
+```
+## Intersection 交叉
+```ts
+type Intersection<T extends object, U extends object> = Pick<
+ T,
+ Extract<keyof T, keyof U> & Extract<keyof U, keyof T>
+>;
+
+
+type Props = { name: string; age: number; visible: boolean };
+type DefaultProps = { age: number; r: boolean };
+
+// Expect: { age: number; }
+type DuplicateProps = Intersection<Props, DefaultProps>;
+```
+
+## Merge 两个属性合并
+
+```ts
+type O1 = {
+  id: number;
+  name: string;
+};
+
+type O2 = {
+  id: number;
+  age: number;
+};
+
+
+//Compute的作用是将交叉类型合并
+type Compute<A extends any> = A extends Function ? A : { [K in keyof A]: A[K] };
+
+type R1 = Compute<{ x: "x" } & { y: "y" }>;
+type Merge<O1 extends object, O2 extends object> = Compute<
+  O1 & Omit<O2, keyof O1>
+>;
+
+type R2 = Merge<O1, O2>;
 ```

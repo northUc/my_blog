@@ -43,6 +43,7 @@ module.exports = {
         title: "article",
         collapsable: false,
         children: [
+          "webpack5",
           "webpack",
           "module",
           "vueAnalysis",
@@ -59,7 +60,9 @@ module.exports = {
           "reg",
           "deepWebpack",
           "ts",
-          "wqianduan"
+          "wqianduan",
+          "gulp",
+          "babel",
         ]
       },{
         title:'react',
@@ -72,7 +75,8 @@ module.exports = {
           "hook",
           "reactSource",
           "reactSource16",
-          "fiber"
+          "fiber",
+          "reactOptimization"
         ]
       },{
         title:'vue',

@@ -782,11 +782,12 @@ module: {
 }
 ```
 ### DefinePlugin 
-- DefinePlugin创建一些在编译时可以配置的全局常量
+- DefinePlugin 创建一些在编译时可以配置的全局常量
 - 如果配置的值是字符串，那么整个字符串会被当成代码片段来执行，其结果作为最终变量的值
 - 如果配置的值不是字符串，也不是一个对象字面量，那么该值会被转为一个字符串，如 true，最后的结果是 'true'
 - 如果配置的是一个对象字面量，那么该对象的所有 key 会以同样的方式去定义
 - JSON.stringify(true) 的结果是 'true'
+- 就是 模块内 进行内容替换
 ```js
 new webpack.DefinePlugin({
     PRODUCTION: JSON.stringify(true),
@@ -1277,6 +1278,7 @@ done 整个编译完成
 - 打包后的文件名字 会默认加数字
 - 可以通过 webpackChunkname 处理
 - 也可以通过 output 的chunkFilename 配置(注意 filename不能写死 否则不生效)
+- prefetch: true 浏览器在空闲的时候 会自动加载
 ```js
 import(/* webpackChunkName:'lazy' */'./lazy.js').then(rs=>{
   console.log(rs.default)
