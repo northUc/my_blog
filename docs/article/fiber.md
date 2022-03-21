@@ -492,6 +492,10 @@ requestIdleCallback(workLoop,{timeout:500})
 ### 双缓存机制
 - `currentRoot`当前渲染的根fiber , 也就是说`currentRoot`就是上一个`workInProgressRoot`(每次渲染完成后,workInProgressRoot 就把自己赋值给 currentRoot,然后workInProgressRoot 对象有赋值新的fiber)
 - 利用`workInProgressRoot`和`currentRoot` 两个对象,一个保存上一个fiebr,一个保存当前的fiber,不管
+- 2个作用:
+  - 1、减少垃圾回收
+  - 2、保存一些信息,新的fiber信息直接从老节点中获取
+
 <img :src="$withBase('/img/alternate.jpg')" >
 
 ## DOM-DIFF

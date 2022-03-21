@@ -82,7 +82,25 @@ let elm = React.createElement('div',
 - 类组件 阔以调用`forceUpdate` 对组件 进行强制更新。
 - `import { unstable_batchedUpdates } from './react-dom'` 强制更新
   - `unstable_batchedUpdates` 逻辑很简单,强制开始批量更新,执行传递进来的逻辑,在关闭批量更新,调用队列更新,去更新组件
-
+  - 批量更新 只会执行最后一次
+  - 异步更新(同步模式) 一个一个更新
+- 在同步模式下,实现批量更新
+- 在并发模式下,在`setTimeout`天然就是 批量更新,不需要加`unstable_batchedUpdate`
+```js
+// ReactDOM.unstable_batchedUpdate 批量更新 只会执行最后一次
+setTimeout(()=>{
+        ReactDOM.unstable_batchedUpdates(()=>{
+            this.setState({
+                num1: this.state.num1 + 1
+            })
+            console.log(this.state.num1);
+            this.setState({
+                num1: this.state.num1 + 1
+            })
+            console.log(this.state.num1);
+        })
+    })
+```
 ## forceUpdate
 - 每次setState执行完成组件尝试去更新，首先判断`shouldUpdate`钩子是否支持,如果支持才调用`forceUpdate`执行强制更新。另外我们可以通过类组件直接调用`forceUpdate`进行强制更新
 - 在这里 会走`componentWillMount`&`getSnapshotBeforeUpdate`&`render`&`componentDidUpdate`钩子一次执行, render之后, 拿新老dom比较更新

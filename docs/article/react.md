@@ -490,7 +490,7 @@ export default Counter
   - 否的话,就将直接更新当前组件的 update(直接更新dom操作),遍历所有的 dirtyComponents(脏组件)执行他们的update方法(直接更新dom操作)
   - 是的情况下一般是同步,把所有的组件存起来,否的一般是异步情况,因为同步走完了会更新批量为false
 - 一般React能管辖地方就是批量 时间处理 或者 生命周期
-- 一般React能管辖不到地方就是一步， 走宏任务
+- 一般React能管辖不到地方就是一步， 走宏任务(定时器,延时器,addEventListener)
 ```js
 // 默认是批量更新的   setstate 异步更新原理
 let isBatchingUpdate = true

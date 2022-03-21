@@ -1,5 +1,5 @@
 # hooks
-
+- hooks内部用单链表管理hooks,执行hooks的时候将hooks加如链表中,同时用循环链表来记录hooks的更新
 ## 每次渲染都是独立的闭包
 - 每一次渲染都有它自己的props and state
 - 每一次渲染都有它自己的事件处理函数
@@ -118,6 +118,12 @@ ReactDOM.render(<Counter6 number1={5}/>,document.getElementById('root'))
 - useMemo包装变量,第二个参数都是数组 指的该函数变化的时候 不会重新创建函数 执行
   - 它仅会在某个依赖项改变时才重新计算 memoized 值。这种优化有助于避免在每次渲染时都进行高开销的计算
 - useCallback包装回调函数,二个参数同上
+### 区别
+- useMemo 用来缓存数据，当组件内部某一个渲染的数据，需要通过计算得来，这个计算是依赖与特定的 state、props 数据，我们就用 useMemo 来缓存这个数据，因此避免在修改它们的时候，没有依赖的数据源的情况下，多次调用这个计算函数，浪费资源。
+
+- useCallback 缓存一个函数，这个函数如果是由父组件传递给子组件，或者自定义 hooks 里面的函数----通常自定义 hooks 里面的函数，不会依赖于引用它的组件里面的数据，这个时候可以考虑下混村这个函数，其好处在于：
+  - 不用每次重新声明新的函数，避免释放内存，分配内存的计算资源浪费
+  - 子组件不会因为这个函数的变动重新渲染---和React.memo搭配使用
 ```js
 function SubCounter({onClick,data}){
   console.log('SubCounter render')
@@ -177,6 +183,23 @@ function Counter6(props){
   )
 }
 ReactDOM.render(<Counter6/>,document.getElementById('root'))
+```
+### useReducer 实现一个 useState
+```js
+function useCustomState(initialState) {
+    // 特殊的 reducer
+    const reducer = (state, action) => {
+      if (typeof action === 'function') {
+        return action(state);
+      }
+      return action;
+    };
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const setState = action => {
+      dispatch(action);
+    }
+    return [state, setState];
+  }
 ```
 ## useContext
 - 接收一个 context 对象（React.createContext 的返回值）并返回该 context 的当前值

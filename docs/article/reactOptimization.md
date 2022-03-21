@@ -98,6 +98,7 @@ console.log(baseState.ids === nextState.ids);//false
 console.log(baseState.pos === nextState.pos);//true
 ```
 ### immutable
+- 数据用Map包装,比较用is,性能很高,不用以前的对象的深比较
 ```js
 import React from 'react';
 import {PureComponent} from './utils';
