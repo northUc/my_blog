@@ -5,6 +5,9 @@ module.exports = {
     editLinkText: "编辑此页",
     lastUpdated: "上次更新",
     nav: [{
+      text: "courseware",
+      link: "/courseware/"
+    },{
       text: "front",
       link: "/front/"
     },
@@ -165,6 +168,13 @@ module.exports = {
         collapsable: false,
         children: [
           "base",
+        ]
+      }],
+      "/courseware/": [{
+        title: "courseware",
+        collapsable: false,
+        children: [
+          "react",
         ]
       }],
       "/interview/": [{

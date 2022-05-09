@@ -52,6 +52,48 @@
 //     return _add
 // }
 
-console.log(add(1, 2, 3, 4, 5)); //15
-console.log(add(1)(2, 3)(4, 5) + ''); //15
-console.log(add(1)(2)(3)(4)(5) + ''); //15
+/*
+
+遍历对象
+
+for in 遍历对象的key 包括原型链 没有symbol
+
+Object.key() 返回对象的自身的key  没有symbol  没有原型链 可枚举
+
+object.getOwnpropertNames  返回对象的自身的key  没有symbol  没有原型链
+
+object.getOwnpropertSymbol  返回对象的自身的key  symbol  没有原型链 
+
+Reflect.ownKey  返回自身的 所有key
+
+
+
+*/
+
+let r1 = ()=> new Promise((resolve,reject)=>{
+    setTimeout(() => {
+        resolve('r1')
+    }, 1000);
+})
+
+let r2 = ()=>new Promise((resolve,reject)=>{
+    setTimeout(() => {
+        reject(Promise.resolve('r2'))
+    }, 1000);
+})
+
+r1().finally(()=>{
+    console.log('123')
+})
+
+// const a = async()=> {
+//     try {
+//         let a1 = await r1()
+//         console.log(a1)
+//         let a2 = await r2()
+//         console.log(a2)
+//     } catch (error) {
+//         console.log('error', error)        
+//     }
+// }
+// a()

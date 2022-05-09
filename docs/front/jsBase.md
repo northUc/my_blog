@@ -639,6 +639,7 @@ function factorial(num){
 - 读取属性特征
   - Object.getOwnPropertyDescriptor('对象','属性') 可以获取属性的特征 也就是上面的配置
 ## 创建对象
+- new Object(null) 不会产生原型链，{} 会产生
 - 1、字面量
 ```js
 //   let obj = new Object()

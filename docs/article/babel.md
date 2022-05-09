@@ -2,8 +2,10 @@
 
 ## babel 插件
 - `@babel/core`这个模块主要对语法进行ast解析,插件的作用是在解析的时候 对需要处理的语法进行转化
+- `@babel/core`是`babel`的核心，主要起串联的作用，功能包括加载配置、调用`@babel/parser`解析AST、调用`@babel/traverse`遍历并操作AST、调用`@babel/generator`生成代码。
 - 写法:
     -   每个`babel`插件都需要提供一个`visitor`对象,对象里面存放的是 babel 解析之后 要捕获的类型名称的函数,比如`import`解析后是`ImportDeclaration`等(文档),当遇到 `import` 语法,就会插件
+
 ```js
 const visitor = {
     ImportDeclaration(path,state){
@@ -152,4 +154,79 @@ class ArchivePlugin {
     }
 }
 module.exports = ArchivePlugin;
+```
+
+- `plugins`顺序是按照先后执行,`presets`顺序是按照后先执行
+```js
+// plugin1 ...... plugin6
+const visitor = {
+    FunctionDeclaration(){
+        console.log('plugin1')
+    }
+}
+module.exports = function (babel) {
+    return {
+        visitor,
+    }
+}
+
+
+const path = require('path');
+const plugin1 = require(path.resolve(__dirname, 'plugin1.js'));
+const plugin2 = require(path.resolve(__dirname, 'plugin2.js'));
+const plugin3 = require(path.resolve(__dirname, 'plugin3.js'));
+const plugin4 = require(path.resolve(__dirname, 'plugin4.js'));
+const plugin5 = require(path.resolve(__dirname, 'plugin5.js'));
+const plugin6 = require(path.resolve(__dirname, 'plugin6.js'));
+var babelCore = require("@babel/core");
+let types = require("@babel/types");
+var sourceCode = `
+    function gen() {
+    }    
+`;
+
+const visitor = {
+    CallExpression(nodePath,state){
+        console.log('1')
+    }
+}
+
+function preset1() {
+    return {
+        plugins:[plugin3,plugin4],
+    }
+}
+function preset2() {
+    return {
+        plugins:[plugin5,plugin6],
+    }
+}
+/*
+plugin1
+plugin2
+plugin5
+plugin6
+plugin3
+plugin4
+*/
+var options = {
+    //是否生成解析的代码
+    code: true,
+    //是否生成抽象语法树
+    ast: true,
+    //是否生成sourceMap
+    sourceMaps: true,
+    plugins:[
+        plugin1,
+        plugin2
+    ],
+    presets: [preset1,preset2],
+};
+
+babelCore.transform(sourceCode, options, function (err, result) {
+    // console.log(sourceCode);
+    console.log(result.code);
+    // console.log(result.map);
+    // console.log(result.ast);
+});
 ```
